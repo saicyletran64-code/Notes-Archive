@@ -1,0 +1,3522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2855b8">
+<title>NotesArchive — Save Today, Study Tomorrow.</title>
+<meta name="notesarchive-layout-version" content="responsive-mode-switch-2026-10-14">
+<style>
+/* ==========================================================================
+   NotesArchive — styles
+   Light/dark themes, phone-frame layout, mobile-first.
+   ========================================================================== */
+
+:root{
+  --blue:#2855b8;
+  --indigo:#6557ee;
+  --brand:linear-gradient(90deg,#315fe1,#6b58ef);
+  --line:#dce4f1;
+  --text:#10275b;
+  --muted:#73809a;
+  --surface:#fff;
+  --surface-2:#f5f8ff;
+  --surface-3:#eef4ff;
+  --danger:#e95378;
+  --ok:#20a06a;
+  --shadow:0 10px 30px rgba(42,73,140,.10);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --radius:14px;
+  --fs:1;
+}
+
+html[data-theme="dark"]{
+  --line:#2b3555;
+  --text:#e7edfb;
+  --muted:#98a4c0;
+  --surface:#141a2e;
+  --surface-2:#1b2340;
+  --surface-3:#202a4c;
+  --shadow:0 12px 34px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;height:100%;overflow:hidden}
+
+body{
+  margin:0;min-height:100%;height:100%;overflow:hidden;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:calc(15px * var(--fs));
+  background:
+    radial-gradient(circle at 12% 15%,rgba(99,102,241,.16),transparent 28%),
+    radial-gradient(circle at 88% 85%,rgba(48,101,214,.15),transparent 30%),
+    linear-gradient(135deg,#eef4ff 0%,#f7f9ff 48%,#edf5ff 100%);
+  background-attachment:fixed;
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+html[data-theme="dark"] body{
+  background:
+    radial-gradient(circle at 12% 15%,rgba(99,102,241,.20),transparent 30%),
+    radial-gradient(circle at 88% 85%,rgba(48,101,214,.18),transparent 32%),
+    linear-gradient(135deg,#0c1020 0%,#101528 50%,#0d1226 100%);
+}
+
+button,input,textarea,select{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+h1,h2,h3{margin:0 0 6px;letter-spacing:-.4px}
+h1{font-size:calc(24px * var(--fs))}
+h2{font-size:calc(18px * var(--fs))}
+h3{font-size:calc(15px * var(--fs))}
+p{margin:0}
+a{color:var(--indigo)}
+
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.small{font-size:calc(12px * var(--fs))}
+.mt8{margin-top:8px}.mt13{margin-top:13px}.mt16{margin-top:16px}
+.center{text-align:center}
+
+/* ---------- responsive app / website modes ---------- */
+.app{width:100%;height:100vh;height:100dvh;min-height:0;display:flex;align-items:stretch;justify-content:center;padding:0;overflow:hidden}
+.phone{
+  isolation:isolate;width:100%;max-width:460px;height:100vh;height:100dvh;min-height:0;flex:1 1 auto;background:var(--surface);border:1px solid var(--line);
+  border-radius:22px;overflow:hidden;box-shadow:var(--shadow);position:relative;animation:none;
+}
+/* On phones, app mode always uses every available pixel and respects notches/home bars. */
+html:not(.website-mode) body{padding:0}
+html.website-mode .app{justify-content:stretch}
+html.website-mode .phone{max-width:none;width:100%;border:0;border-radius:0;box-shadow:none}
+html.website-mode .screen{padding-left:clamp(18px,3vw,42px);padding-right:clamp(18px,3vw,42px)}
+html.website-mode .cards{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+html.website-mode .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+.noNav .screen{padding-bottom:26px}
+#splash{display:flex;flex-direction:column;justify-content:center}
+.screen{
+  height:100%;overflow:auto;padding:16px 16px 92px;background:var(--surface);
+  animation:screenFade .3s var(--ease);scrollbar-width:thin;
+}
+.screen::-webkit-scrollbar{width:5px}
+.screen::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+@keyframes phoneEnter{from{opacity:0;transform:translateY(16px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes screenFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes popIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+@keyframes barMove{from{width:8%}to{width:100%}}
+
+html[data-motion="off"] *{animation:none!important;transition:none!important}
+
+/* ---------- top bar ---------- */
+.topbar{display:flex;align-items:center;gap:8px;min-height:38px;margin-bottom:10px}
+.topbar h2{flex:1;text-align:center;margin:0}
+.topspace{width:34px}
+.iconbtn{
+  width:34px;height:34px;border-radius:11px;background:var(--surface-2);
+  border:1px solid var(--line);display:grid;place-items:center;font-size:16px;
+  color:var(--text);transition:.2s var(--ease);flex:none;
+}
+.iconbtn:hover{background:var(--surface-3);transform:translateY(-1px)}
+.viewtools{display:flex;gap:6px;margin-left:auto}
+
+.subtitle{color:var(--muted);font-size:calc(13px * var(--fs));line-height:1.6;margin:0 0 14px}
+
+/* ---------- buttons ---------- */
+.primary,.outline{
+  width:100%;padding:14px;border-radius:var(--radius);font-weight:800;
+  transition:.24s var(--ease);
+}
+.primary{
+  background:var(--brand);color:#fff;box-shadow:0 8px 18px rgba(91,82,226,.22);
+}
+.primary:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(81,76,221,.3)}
+.primary:active{transform:translateY(1px) scale(.99)}
+.primary.danger{background:linear-gradient(90deg,#f0506e,#e0537f)}
+.outline{background:var(--surface);border:1px solid var(--line);color:var(--text);font-weight:700}
+.outline:hover{background:var(--surface-2);transform:translateY(-1px)}
+.outline.dangerbtn{color:var(--danger);border-color:rgba(233,83,120,.4)}
+.google{display:flex;align-items:center;justify-content:center;gap:9px}
+.google .g{
+  width:22px;height:22px;border-radius:50%;background:#fff;color:#4285f4;
+  display:grid;place-items:center;font-weight:900;border:1px solid var(--line);
+}
+.linkbtn{color:var(--indigo);font-weight:800;font-size:calc(12.5px * var(--fs));padding:4px 6px;border-radius:8px}
+.linkbtn:hover{background:var(--surface-3)}
+.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;margin:16px 0}
+.divider::before,.divider::after{content:"";height:1px;flex:1;background:var(--line)}
+
+/* ---------- fields ---------- */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:calc(11.5px * var(--fs));font-weight:800;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.field input,.field select,.field textarea{
+  width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface-2);outline:none;transition:.2s var(--ease);resize:vertical;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--indigo);background:var(--surface);box-shadow:0 0 0 3px rgba(101,87,238,.13)}
+.field textarea{min-height:70px}
+.passwrap{position:relative}
+.passwrap input{padding-right:44px}
+.eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  width:32px;height:32px;border-radius:9px;color:var(--muted);font-size:14px}
+.eye:hover{background:var(--surface-3);color:var(--text)}
+.hint{font-size:calc(11px * var(--fs));color:var(--muted);margin-top:6px;line-height:1.5}
+.hint.bad{color:var(--danger)}.hint.good{color:var(--ok)}
+
+.meter{display:flex;gap:5px;margin-top:8px}
+.meter i{flex:1;height:4px;border-radius:4px;background:var(--line);transition:.3s}
+.meter.on1 i:nth-child(-n+1),.meter.on2 i:nth-child(-n+2),
+.meter.on3 i:nth-child(-n+3),.meter.on4 i:nth-child(-n+4){background:var(--indigo)}
+.meter.on1 i{background:var(--danger)}
+.meter.on2 i{background:#f0a43c}
+.meter.on3 i{background:#4fbf8b}
+.meter.on4 i{background:var(--ok)}
+
+.checkrow{display:flex;gap:9px;align-items:flex-start;font-size:calc(12.5px * var(--fs));
+  color:var(--muted);margin:4px 0 14px;cursor:pointer;line-height:1.5}
+.checkrow.inline{margin:0 0 12px}
+.checkrow input{width:17px;height:17px;accent-color:var(--indigo);flex:none;margin-top:1px}
+
+.roleswitch{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.roleopt{padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);
+  font-weight:700;font-size:calc(13px * var(--fs));transition:.2s var(--ease)}
+.roleopt.active{background:var(--brand);color:#fff;border-color:transparent;
+  box-shadow:0 8px 18px rgba(91,82,226,.24)}
+.segment{display:flex;gap:6px;background:var(--surface-2);padding:5px;border-radius:12px;border:1px solid var(--line)}
+.segment button{flex:1;padding:9px 6px;border-radius:9px;font-weight:700;font-size:calc(12px * var(--fs));color:var(--muted)}
+.segment button.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+
+/* ---------- splash ---------- */
+.illustration{width:170px;height:170px;margin:6px auto 14px;display:grid;place-items:center;
+  animation:floaty 6s var(--ease) infinite}
+.notebook{width:100px;height:122px;background:var(--surface-3);border:5px solid var(--blue);
+  border-radius:12px;position:relative;transform:rotate(-5deg);box-shadow:8px 10px 0 rgba(40,85,184,.14)}
+.notebook:before{content:"";position:absolute;left:-14px;top:10px;width:12px;height:100px;
+  background:repeating-linear-gradient(var(--surface) 0 11px,var(--blue) 11px 14px);border-radius:7px}
+.face{position:absolute;left:25px;top:42px;font-size:22px;letter-spacing:10px}
+.pencil{position:absolute;width:16px;height:88px;background:#f5bb36;border:3px solid #2752ad;
+  border-radius:8px;right:-25px;bottom:-12px;transform:rotate(38deg)}
+.logo{font-weight:900;font-size:calc(31px * var(--fs));letter-spacing:-1.8px;text-align:center}
+.logo span{color:var(--indigo)}
+.tagline{color:var(--muted);margin-top:4px;font-size:calc(15px * var(--fs));text-align:center}
+.splashBlurb{font-size:calc(13px * var(--fs));line-height:1.7;color:var(--muted);margin:26px 0 22px}
+
+/* ---------- dashboard ---------- */
+.dashhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.greeting{font-weight:900;font-size:calc(21px * var(--fs));letter-spacing:-.6px}
+.quote{color:var(--muted);font-size:calc(12.5px * var(--fs));margin-top:4px;line-height:1.5;max-width:280px}
+.avatar{width:44px;height:44px;border-radius:14px;background:var(--brand);color:#fff;
+  display:grid;place-items:center;font-weight:900;font-size:19px;flex:none;box-shadow:var(--shadow)}
+.avatar.big{width:78px;height:78px;border-radius:24px;font-size:32px;margin:0 auto 10px}
+.rolemeta{font-size:calc(11.5px * var(--fs));color:var(--muted);margin:2px 0 14px}
+.rolemeta b{color:var(--indigo)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}
+.stat{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:11px 8px;text-align:center}
+.stat b{display:block;font-size:calc(19px * var(--fs));letter-spacing:-.8px}
+.stat small{color:var(--muted);font-size:calc(10px * var(--fs));text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+
+.quickrow{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:18px}
+.quick{display:flex;align-items:center;gap:10px;padding:12px;border-radius:13px;
+  border:1px solid var(--line);background:var(--surface);text-align:left;font-weight:700;
+  font-size:calc(12.5px * var(--fs));transition:.22s var(--ease)}
+.quick:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:#c9d5ee}
+.quick i{font-size:18px;font-style:normal}
+.quick small{display:block;color:var(--muted);font-weight:600;font-size:calc(10.5px * var(--fs))}
+
+.sectionhead{display:flex;align-items:center;justify-content:space-between;margin:6px 0 10px}
+.sectionhead h3{margin:0}
+
+.subjectgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.subjectgrid.wide{margin-bottom:16px}
+.subject{padding:14px;border-radius:15px;text-align:left;border:1px solid var(--line);
+  background:var(--surface-2);transition:.24s var(--ease);position:relative;overflow:hidden}
+.subject:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.subject-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
+  font-size:17px;margin-bottom:9px;background:rgba(255,255,255,.65)}
+html[data-theme="dark"] .subject-icon{background:rgba(255,255,255,.1)}
+.subject b{display:block;font-size:calc(13.5px * var(--fs))}
+.subject small{color:var(--muted);font-size:calc(11px * var(--fs))}
+.subject .sbar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--indigo)}
+
+.recent{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.note-row{display:flex;align-items:center;gap:11px;padding:12px;border-radius:13px;
+  border:1px solid var(--line);background:var(--surface);text-align:left;transition:.2s var(--ease)}
+.note-row:hover{background:var(--surface-2);transform:translateX(2px)}
+.note-dot{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:16px;
+  background:var(--surface-3);flex:none}
+.note-main{flex:1;min-width:0}
+.note-main b{display:block;font-size:calc(13px * var(--fs));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note-main small{color:var(--muted);font-size:calc(10.5px * var(--fs))}
+.chev{color:var(--muted)}
+
+.filestrip{display:flex;align-items:center;gap:11px;padding:14px;border-radius:14px;
+  background:linear-gradient(135deg,var(--surface-3),var(--surface-2));border:1px solid var(--line);cursor:pointer}
+.filestrip:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.fs-icon{width:42px;height:42px;border-radius:12px;background:#dedcff;color:#6359dc;
+  display:grid;place-items:center;font-size:19px;flex:none}
+.fs-text{flex:1;min-width:0}
+.fs-text b{font-size:calc(12.5px * var(--fs))}
+.fs-text small{display:block;color:var(--muted);font-size:calc(10.5px * var(--fs));margin-top:3px}
+
+/* ---------- chips / lists ---------- */
+.chipbar{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.chipbar::-webkit-scrollbar{display:none}
+.chip{padding:8px 13px;border-radius:20px;border:1px solid var(--line);background:var(--surface-2);
+  font-size:calc(12px * var(--fs));font-weight:700;color:var(--muted);white-space:nowrap;flex:none}
+.chip.active{background:var(--brand);color:#fff;border-color:transparent}
+.sortrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;
+  font-size:calc(11.5px * var(--fs));color:var(--muted)}
+.sortrow select{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);
+  font-size:calc(11.5px * var(--fs))}
+
+.cards,.list{display:flex;flex-direction:column;gap:9px}
+.card{display:flex;gap:11px;align-items:flex-start;padding:13px;border-radius:14px;
+  border:1px solid var(--line);background:var(--surface);text-align:left;width:100%;transition:.22s var(--ease)}
+.card:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:#c9d5ee}
+html[data-compact="on"] .card{padding:10px}
+.card .tagdot{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:15px;
+  background:var(--surface-3);flex:none}
+.card .cmain{flex:1;min-width:0}
+.card .cmain b{display:block;font-size:calc(13.5px * var(--fs));margin-bottom:3px}
+.card .cmain p{color:var(--muted);font-size:calc(11.5px * var(--fs));line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html[data-compact="on"] .card .cmain p{-webkit-line-clamp:1}
+.card .cmeta{display:flex;gap:7px;align-items:center;margin-top:7px;flex-wrap:wrap;
+  font-size:calc(10px * var(--fs));color:var(--muted)}
+.badge{padding:3px 8px;border-radius:20px;background:var(--surface-3);font-weight:800;color:var(--indigo)}
+.badge.shared{background:rgba(32,160,106,.14);color:var(--ok)}
+.badge.pin{background:rgba(240,164,60,.16);color:#c17d1b}
+.badge.teacher{background:rgba(101,87,238,.14);color:var(--indigo)}
+.badge.student{background:rgba(40,85,184,.12);color:var(--blue)}
+.empty{padding:26px 18px;text-align:center;color:var(--muted);border:1.5px dashed var(--line);
+  border-radius:15px;background:var(--surface-2);font-size:calc(12.5px * var(--fs));line-height:1.6}
+.empty b{display:block;color:var(--text);font-size:calc(14px * var(--fs));margin-bottom:5px}
+
+/* ---------- editor ---------- */
+.editor{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--surface-2)}
+.toolbar{display:flex;gap:3px;flex-wrap:wrap;padding:7px;background:var(--surface);border-bottom:1px solid var(--line)}
+.toolbar button{min-width:30px;height:29px;padding:0 7px;border-radius:8px;color:var(--muted);font-size:12px;font-weight:800}
+.toolbar button:hover{background:var(--surface-3);color:var(--text)}
+.tbsep{width:1px;background:var(--line);margin:3px 4px}
+.surface{min-height:210px;padding:13px;outline:none;font-size:calc(13.5px * var(--fs));line-height:1.75;background:var(--surface)}
+.surface:empty:before{content:attr(data-placeholder);color:var(--muted)}
+.surface h3{font-size:calc(16px * var(--fs));margin:10px 0 5px}
+.surface ul,.surface ol{padding-left:22px;margin:6px 0}
+.editorfoot{display:flex;justify-content:space-between;padding:8px 12px;font-size:calc(10.5px * var(--fs));
+  color:var(--muted);background:var(--surface);border-top:1px solid var(--line)}
+
+.noteview{font-size:calc(13.5px * var(--fs));line-height:1.8;margin:14px 0 18px;word-break:break-word}
+.noteview h3{margin:14px 0 6px}
+.noteview ul,.noteview ol{padding-left:22px}
+.noteview img{max-width:100%;border-radius:12px}
+.noteview a{color:var(--indigo)}
+.viewmeta{font-size:calc(11px * var(--fs));color:var(--muted);margin-bottom:6px}
+.viewtitle{margin-bottom:4px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+
+/* ---------- files ---------- */
+.archivecount{font-size:calc(10.5px * var(--fs));font-weight:800;background:var(--surface-3);
+  color:var(--indigo);padding:5px 9px;border-radius:20px;flex:none}
+.uploadbox{text-align:center;padding:18px;border-radius:16px;border:1.5px dashed var(--line);
+  background:var(--surface-2);margin-bottom:15px}
+.upload-icon{width:44px;height:44px;margin:0 auto 8px;border-radius:13px;background:var(--brand);
+  color:#fff;display:grid;place-items:center;font-size:20px}
+.uploadbox small{display:block;color:var(--muted);font-size:calc(11px * var(--fs));margin:6px auto 10px;line-height:1.6;max-width:300px}
+.filetypes{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
+.filetypes span{font-size:calc(9.5px * var(--fs));font-weight:800;padding:3px 7px;border-radius:7px;
+  background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.filelist{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.fcard{display:flex;align-items:center;gap:11px;padding:12px;border-radius:14px;border:1px solid var(--line);
+  background:var(--surface);text-align:left;width:100%;transition:.22s var(--ease)}
+.fcard:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.ficon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:calc(9.5px * var(--fs));
+  font-weight:900;color:#fff;flex:none;letter-spacing:.3px}
+.fmain{flex:1;min-width:0}
+.fmain b{display:block;font-size:calc(12.5px * var(--fs));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fmain small{color:var(--muted);font-size:calc(10.5px * var(--fs))}
+.picked{padding:12px;border-radius:13px;background:var(--surface-2);border:1px solid var(--line);
+  font-size:calc(12px * var(--fs));margin-bottom:14px;line-height:1.7}
+.progress{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-bottom:12px}
+.progress i{display:block;height:100%;width:0;background:var(--brand);transition:width .45s var(--ease)}
+
+/* ---------- profile ---------- */
+.profilehead{text-align:center;margin-bottom:16px}
+.badges{display:flex;gap:6px;justify-content:center;margin-top:9px;flex-wrap:wrap}
+.menu{display:flex;flex-direction:column;gap:8px}
+.menu button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px;
+  border-radius:13px;border:1px solid var(--line);background:var(--surface);font-weight:700;
+  font-size:calc(13px * var(--fs));transition:.2s var(--ease)}
+.menu button:hover{background:var(--surface-2);transform:translateX(2px)}
+.menu b{color:var(--muted)}
+.menu .danger{color:var(--danger)}
+.menu.plain button{padding:12px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.swatch{width:30px;height:30px;border-radius:10px;border:2px solid transparent;transition:.18s}
+.swatch.active{border-color:var(--text);transform:scale(1.12)}
+.iconpick{display:flex;gap:7px;flex-wrap:wrap}
+.iconpick button{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface-2);font-size:18px}
+.iconpick button.active{border-color:var(--indigo);background:var(--surface-3)}
+.setgroup{padding:14px;border-radius:15px;border:1px solid var(--line);background:var(--surface-2);margin-bottom:14px}
+.setlabel{font-size:calc(11px * var(--fs));font-weight:900;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--muted);margin-bottom:11px}
+.usage{font-size:calc(12px * var(--fs));color:var(--muted);line-height:1.6;margin-bottom:11px}
+.faq{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.qa{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--surface)}
+.qa button.q{display:flex;justify-content:space-between;gap:10px;width:100%;padding:13px;text-align:left;font-weight:700}
+.qa .a{padding:0 13px 13px;color:var(--muted);font-size:calc(12px * var(--fs));line-height:1.7}
+.qa .a.hidden{display:none}
+.notehint{padding:11px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);
+  font-size:calc(12px * var(--fs));line-height:1.6;color:var(--muted)}
+.known{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+.codebox{padding:13px;border-radius:12px;background:var(--surface-3);border:1px solid var(--line);
+  text-align:center;font-size:calc(13px * var(--fs));margin-bottom:12px}
+.codebox b{display:block;margin-top:5px;font-size:calc(23px * var(--fs));letter-spacing:5px;color:var(--indigo)}
+
+/* ---------- nav ---------- */
+.bottom{position:absolute;left:0;right:0;bottom:0;height:66px;display:flex;align-items:center;
+  justify-content:space-around;padding:0 8px calc(6px);background:color-mix(in srgb,var(--surface) 88%,transparent);
+  backdrop-filter:blur(14px);border-top:1px solid var(--line);z-index:6}
+.navbtn{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:calc(9.5px * var(--fs));
+  font-weight:800;color:var(--muted);padding:6px 9px;border-radius:11px;flex:1}
+.navbtn span{font-size:17px;line-height:1}
+.navbtn.active{color:var(--indigo);background:var(--surface-3)}
+.addbtn{width:46px;height:46px;border-radius:16px;background:var(--brand);color:#fff;font-size:23px;
+  display:grid;place-items:center;box-shadow:0 9px 20px rgba(91,82,226,.35);flex:none;margin-top:-18px;
+  transition:.22s var(--ease)}
+.addbtn:hover{transform:translateY(-3px) rotate(90deg)}
+
+/* ---------- overlays ---------- */
+.sheet{position:fixed;inset:0;background:rgba(11,24,54,.42);z-index:12;display:flex;
+  align-items:flex-end;animation:screenFade .22s var(--ease)}
+.sheetbox{width:100%;background:var(--surface);border-radius:22px 22px 0 0;padding:12px 14px 20px;
+  border-top:1px solid var(--line)}
+.grab{width:44px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 14px}
+.sheetgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
+.sheetgrid button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 6px;
+  border-radius:14px;background:var(--surface-2);border:1px solid var(--line);font-size:19px;font-weight:800}
+.sheetgrid small{font-size:calc(10px * var(--fs));color:var(--muted);font-weight:700}
+.sheetgrid button:hover{background:var(--surface-3);transform:translateY(-2px)}
+
+.modal{position:fixed;inset:0;background:rgba(11,24,54,.45);z-index:14;display:grid;place-items:center;
+  padding:16px;animation:screenFade .2s var(--ease)}
+.modalbox{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);
+  border-radius:20px;padding:16px;box-shadow:var(--shadow);max-height:86%;overflow:auto;animation:popIn .26s var(--ease)}
+.modaltop{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.file-detail-icon{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;
+  font-size:12px;font-weight:900;color:#fff;margin:6px auto 10px}
+.file-detail-name{text-align:center;font-weight:800;font-size:calc(13.5px * var(--fs));word-break:break-word}
+.file-detail-info{text-align:center;color:var(--muted);font-size:calc(11.5px * var(--fs));margin:7px 0 12px;line-height:1.7}
+.previewbox{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:8px;
+  max-height:210px;overflow:auto;margin-bottom:10px}
+.previewbox img{width:100%;border-radius:9px;cursor:zoom-in}
+.previewbox iframe{width:100%;height:200px;border:0;border-radius:9px;background:#fff}
+.previewbox pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:calc(11.5px * var(--fs));
+  font-family:ui-monospace,Consolas,monospace;line-height:1.6;max-height:190px;overflow:auto}
+.lightbox{position:fixed;inset:0;background:rgba(6,10,24,.9);z-index:20;display:grid;place-items:center;padding:18px}
+.lightbox img{max-width:100%;max-height:100%;border-radius:12px}
+
+.toast{position:absolute;left:50%;bottom:82px;transform:translateX(-50%);background:#10275b;color:#fff;
+  padding:11px 16px;border-radius:12px;font-size:calc(12px * var(--fs));font-weight:700;z-index:24;
+  box-shadow:0 10px 26px rgba(11,24,54,.35);max-width:88%;text-align:center;animation:popIn .25s var(--ease)}
+.toast.bad{background:#c33257}.toast.good{background:#1b7f57}
+
+/* ---------- responsive ---------- */
+@media (max-width:520px){
+  .app{padding:0;justify-content:stretch}
+  .phone{width:100%;max-width:none;height:100vh;height:100dvh;min-height:0;border:0;border-radius:0;box-shadow:none}
+  .screen{padding: max(12px, env(safe-area-inset-top)) 12px calc(82px + env(safe-area-inset-bottom))}
+  .sheetbox{max-height:78dvh;overflow-y:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  .sheetgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bottom{padding-bottom:env(safe-area-inset-bottom)}
+  .modal{padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom))}
+  .modalbox{max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:auto}
+}
+@media (min-width:521px) and (max-width:899px){.phone{max-width:520px}}
+
+@media (min-width:900px){
+  .stats{grid-template-columns:repeat(3,1fr)}
+}
+
+/* Responsive layout hardening: phone-first by default, wide layout when toggled. */
+html, body { width:100%; max-width:100%; }
+.app { width:100%; min-width:0; }
+.phone { min-width:0; }
+.screen { min-width:0; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+img, video, canvas, iframe { max-width:100%; }
+button, input, textarea, select { max-width:100%; }
+
+/* Phones: use the full viewport, including modern safe areas. */
+@media (max-width:520px){
+  html, body { width:100%; height:100%; overflow:hidden; }
+  .app, .phone { width:100%; max-width:none; height:100vh; height:100dvh; }
+  .phone { border-radius:0; border:0; }
+  .screen { padding-top:max(12px, env(safe-area-inset-top)); padding-left:12px; padding-right:12px; }
+  .topbar { gap:6px; }
+  .stats { gap:6px; }
+  .stat { min-width:0; padding:10px 5px; }
+  .quickrow, .subjectgrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .bottom { padding-bottom:calc(6px + env(safe-area-inset-bottom)); }
+  .sheet { padding-bottom:env(safe-area-inset-bottom); }
+  .sheetbox { width:100%; max-height:82dvh; overflow-y:auto; }
+  .modalbox { width:min(100%, 560px); }
+}
+
+/* Tablets: app mode remains a comfortable centered app; website mode expands. */
+@media (min-width:521px) and (max-width:899px){
+  .app { padding:12px; }
+  .phone { max-width:560px; height:calc(100dvh - 24px); border-radius:22px; }
+  html.website-mode .app { padding:0; }
+  html.website-mode .phone { height:100dvh; }
+}
+
+/* Desktop website mode uses the available width and adapts grids to it. */
+@media (min-width:900px){
+  html.website-mode .app { padding:0; }
+  html.website-mode .phone { height:100dvh; }
+  html.website-mode .screen { padding-top:24px; }
+  html.website-mode .quickrow { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+  html.website-mode .subjectgrid { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ==========================================================
+     SPLASH + AUTH
+========================================================== -->
+
+<div class="app">
+<div class="phone" id="phone">
+
+<!-- ==========================================================
+     SPLASH
+========================================================== -->
+
+<section class="screen center authscreen" id="splash">
+
+  <div class="illustration">
+    <div class="notebook"><div class="face">• •</div><div class="pencil"></div></div>
+  </div>
+
+  <div class="logo">Notes<span>Archive</span></div>
+  <div class="tagline">Save Today, Study Tomorrow.</div>
+
+  <p class="splashBlurb">Your notes, organized.<br>Your files, always ready.</p>
+
+  <button class="primary" onclick="go('signup')">Get Started</button>
+  <button class="outline mt8" onclick="go('login')">I Already Have an Account</button>
+
+  <div class="center mt8 small muted">
+    Works offline · your data stays on this device
+  </div>
+
+</section>
+
+<!-- SIGN UP -->
+<section class="screen hidden" id="signup">
+  <div class="topbar">
+    <button class="iconbtn" onclick="go('splash')">‹</button>
+    <h2>Create Account</h2>
+    <span class="topspace"></span>
+  </div>
+
+  <p class="subtitle">Two quick steps and you're in. No sign-up forms by email.</p>
+
+  <div class="field">
+    <label>I am a…</label>
+    <div class="roleswitch" id="signupRoles">
+      <button type="button" class="roleopt active" data-role="student">🎓 Student</button>
+      <button type="button" class="roleopt" data-role="teacher">🧑‍🏫 Teacher</button>
+    </div>
+  </div>
+
+  <div class="field"><label>Full Name *</label>
+    <input id="signupName" placeholder="e.g. Ana Reyes" autocomplete="name"></div>
+
+  <div class="field"><label>Email *</label>
+    <input id="signupEmail" type="email" placeholder="you@school.edu" autocomplete="email"></div>
+
+  <div class="field"><label>Class / Section <span class="muted">(optional)</span></label>
+    <input id="signupClass" placeholder="e.g. Grade 9 - Rizal"></div>
+
+  <div class="field"><label>Password *</label>
+    <div class="passwrap">
+      <input id="signupPass" type="password" placeholder="At least 6 characters" autocomplete="new-password">
+      <button type="button" class="eye" onclick="togglePass('signupPass',this)">👁</button>
+    </div>
+    <div class="meter" id="signupMeter"><i></i><i></i><i></i><i></i></div>
+    <div class="hint" id="signupHint">Use 6+ characters with a number for a strong password.</div>
+  </div>
+
+  <div class="field"><label>Confirm Password *</label>
+    <div class="passwrap">
+      <input id="signupPass2" type="password" placeholder="Repeat password" autocomplete="new-password">
+      <button type="button" class="eye" onclick="togglePass('signupPass2',this)">👁</button>
+    </div>
+  </div>
+
+  <button class="primary" id="btnSignup" onclick="signup()">Create Account</button>
+
+  <div class="divider">or</div>
+  <button class="outline google" onclick="googleDemo()">
+    <span class="g">G</span> Continue with Google (quick demo)
+  </button>
+
+  <div class="center mt16 small">
+    Already registered? <button class="linkbtn" onclick="go('login')">Log In</button>
+  </div>
+</section>
+
+<!-- LOGIN -->
+<section class="screen hidden" id="login">
+  <div class="topbar">
+    <button class="iconbtn" onclick="go('splash')">‹</button>
+    <h2>Welcome Back</h2>
+    <span class="topspace"></span>
+  </div>
+
+  <p class="subtitle" id="loginSubtitle">Log in to open your notes and class files.</p>
+
+  <div class="field"><label>Email</label>
+    <input id="loginEmail" type="email" placeholder="you@school.edu" autocomplete="username"></div>
+
+  <div class="field"><label>Password</label>
+    <div class="passwrap">
+      <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password">
+      <button type="button" class="eye" onclick="togglePass('loginPass',this)">👁</button>
+    </div>
+  </div>
+
+  <label class="checkrow">
+    <input type="checkbox" id="rememberMe" checked>
+    <span>Keep me logged in on this device</span>
+  </label>
+
+  <button class="primary" onclick="login()">Log In</button>
+
+  <div class="center mt8">
+    <button class="linkbtn" onclick="go('forgot')">Forgot password?</button>
+  </div>
+
+  <div class="divider">or</div>
+  <button class="outline google" onclick="googleDemo()">
+    <span class="g">G</span> Continue with Google (quick demo)
+  </button>
+
+  <div id="knownAccounts" class="known"></div>
+
+  <div class="center mt16 small">
+    New here? <button class="linkbtn" onclick="go('signup')">Create an account</button>
+  </div>
+</section>
+
+<!-- FORGOT PASSWORD -->
+<section class="screen hidden" id="forgot">
+  <div class="topbar">
+    <button class="iconbtn" onclick="go('login')">‹</button>
+    <h2>Reset Password</h2>
+    <span class="topspace"></span>
+  </div>
+
+  <p class="subtitle">Your account lives on this device, so we hand you a one-time reset code here instead of by email.</p>
+
+  <div class="card" id="forgotStep1">
+    <div class="field"><label>Your Email</label>
+      <input id="fpEmail" type="email" placeholder="you@school.edu"></div>
+    <button class="primary" onclick="forgotLookup()">Send Me a Reset Code</button>
+  </div>
+
+  <div class="card hidden" id="forgotStep2">
+    <div class="codebox">Your reset code: <b id="fpCode">------</b></div>
+    <div class="field"><label>Reset Code</label>
+      <input id="fpCodeInput" placeholder="Enter the 6-digit code" maxlength="6"></div>
+    <div class="field"><label>New Password</label>
+      <div class="passwrap">
+        <input id="fpNew" type="password" placeholder="At least 6 characters">
+        <button type="button" class="eye" onclick="togglePass('fpNew',this)">👁</button>
+      </div></div>
+    <div class="field"><label>Confirm New Password</label>
+      <input id="fpNew2" type="password" placeholder="Repeat new password"></div>
+    <button class="primary" onclick="forgotReset()">Update Password</button>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section class="screen hidden" id="dashboard">
+  <div class="dashhead">
+    <div>
+      <div class="greeting" id="greetLine">Hello 👋</div>
+      <div class="quote" id="dailyQuote"></div>
+    </div>
+    <div class="avatar" id="dashAvatar">N</div>
+  </div>
+
+  <div class="rolemeta" id="roleMeta"></div>
+
+  <div class="stats" id="dashStats"></div>
+
+  <div class="quickrow" id="quickRow"></div>
+
+  <div class="sectionhead"><h3>My Subjects</h3>
+    <button class="linkbtn" onclick="go('subjects')">Manage</button></div>
+  <div class="subjectgrid" id="dashSubjects"></div>
+
+  <div class="sectionhead"><h3>Recent Notes</h3>
+    <button class="linkbtn" onclick="go('notes')">See all</button></div>
+  <div class="recent" id="recentNotes"></div>
+
+  <div class="sectionhead"><h3>From My Class</h3>
+    <button class="linkbtn" onclick="go('class')">Class Library</button></div>
+  <div class="recent" id="dashClass"></div>
+
+  <div class="filestrip" onclick="go('files')">
+    <div class="fs-icon">📁</div>
+    <div class="fs-text">
+      <b>School File Archive</b>
+      <small id="dashFileCount">Loading…</small>
+    </div>
+    <button class="linkbtn">Open →</button>
+  </div>
+</section>
+
+<!-- SUBJECTS -->
+<section class="screen hidden" id="subjects">
+  <div class="topbar">
+    <button class="iconbtn" onclick="goBack()">‹</button>
+    <h2>My Subjects</h2>
+    <button class="iconbtn" onclick="openSubjectModal()">＋</button>
+  </div>
+
+  <p class="subtitle">Tap a subject to write a note for it. Add your own with the ＋ button.</p>
+  <div class="subjectgrid wide" id="subjectGrid"></div>
+
+  <div class="sectionhead"><h3>Subjects in my archive</h3></div>
+  <div class="list" id="subjectList"></div>
+</section>
+
+<!-- NOTE EDITOR -->
+<section class="screen hidden" id="editor">
+  <div class="topbar">
+    <button class="iconbtn" onclick="closeEditor()">‹</button>
+    <h2 id="editorTitle">New Note</h2>
+    <button class="iconbtn" onclick="saveNote()" title="Save">✓</button>
+  </div>
+
+  <div class="field"><label>Subject *</label>
+    <select id="noteSubject"></select></div>
+
+  <div class="field"><label>Title *</label>
+    <input id="noteTitle" placeholder="e.g. Algebra Formulas"></div>
+
+  <div class="field"><label>Content *</label>
+    <div class="editor">
+      <div class="toolbar">
+        <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+        <button type="button" data-cmd="strikeThrough" title="Strike"><s>S</s></button>
+        <span class="tbsep"></span>
+        <button type="button" data-cmd="insertUnorderedList" title="Bullets">• ≡</button>
+        <button type="button" data-cmd="insertOrderedList" title="Numbers">1. ≡</button>
+        <button type="button" data-cmd="formatBlock:h3" title="Heading">H</button>
+        <span class="tbsep"></span>
+        <button type="button" data-cmd="hiliteColor" title="Highlight">🖍</button>
+        <button type="button" data-cmd="createLink" title="Link">🔗</button>
+        <button type="button" data-cmd="removeFormat" title="Clear format">⌫</button>
+      </div>
+      <div class="surface" id="noteBody" contenteditable="true"
+           data-placeholder="Start writing your note here…"></div>
+      <div class="editorfoot">
+        <span id="wordCount">0 words</span>
+        <span id="saveState">Draft kept automatically</span>
+      </div>
+    </div>
+  </div>
+
+  <label class="checkrow">
+    <input type="checkbox" id="noteShare">
+    <span id="noteShareLabel">Share with my class library</span>
+  </label>
+
+  <button class="primary" onclick="saveNote()">▣ Save Note</button>
+  <button class="outline mt8" onclick="discardNote()">Cancel</button>
+</section>
+
+<!-- NOTES LIST -->
+<section class="screen hidden" id="notes">
+  <div class="topbar">
+    <button class="iconbtn" onclick="go('dashboard')">‹</button>
+    <h2>My Notes</h2>
+    <button class="iconbtn" onclick="newNote()" title="New note">＋</button>
+  </div>
+
+  <div class="field"><input id="noteSearch" placeholder="🔍 Search titles, subjects, content…"
+    oninput="renderNotes()"></div>
+
+  <div class="chipbar" id="noteChips"></div>
+
+  <div class="sortrow">
+    <span id="noteCount">0 notes</span>
+    <select id="noteSort" onchange="renderNotes()">
+      <option value="new">Newest first</option>
+      <option value="old">Oldest first</option>
+      <option value="az">Title A–Z</option>
+      <option value="pinned">Pinned & favourites</option>
+    </select>
+  </div>
+
+  <div class="cards" id="notesList"></div>
+</section>
+
+<!-- VIEW NOTE -->
+<section class="screen hidden" id="view">
+  <div class="topbar">
+    <button class="iconbtn" onclick="goBack()">‹</button>
+    <div class="viewtools">
+      <button class="iconbtn" onclick="togglePin()" id="pinBtn" title="Pin">☆</button>
+      <button class="iconbtn" onclick="shareCurrentNote()" id="shareBtn" title="Share with class">⇪</button>
+      <button class="iconbtn" onclick="noteMenu()" title="More">⋮</button>
+    </div>
+  </div>
+
+  <div class="viewmeta" id="viewMeta"></div>
+  <h1 class="viewtitle" id="viewTitle"></h1>
+  <div class="noteview" id="viewContent"></div>
+
+  <div class="actions" id="viewActions">
+    <button class="primary" id="vbEdit" onclick="editCurrent()">✎ Edit</button>
+    <button class="outline" id="vbCopy" onclick="copyCurrent()">⧉ Copy text</button>
+    <button class="primary hidden" id="vbClassCopy" onclick="copySharedFromView()">＋ Copy to my notes</button>
+  </div>
+</section>
+
+<!-- CLASS LIBRARY -->
+<section class="screen hidden" id="class">
+  <div class="topbar">
+    <button class="iconbtn" onclick="goBack()">‹</button>
+    <h2>Class Library</h2>
+    <span class="topspace"></span>
+  </div>
+
+  <p class="subtitle" id="classSubtitle">Shared notes and materials from the teachers of this class.</p>
+
+  <div class="chipbar" id="classChips"></div>
+  <div class="cards" id="classList"></div>
+</section>
+
+<!-- FILE ARCHIVE -->
+<section class="screen hidden" id="files">
+  <div class="topbar">
+    <button class="iconbtn" onclick="goBack()">‹</button>
+    <h2>File Archive</h2>
+    <div class="archivecount" id="archiveCount">0 files</div>
+  </div>
+
+  <p class="subtitle">Lectures, slides, worksheets and photos — organized by subject.</p>
+
+  <div class="uploadbox">
+    <div class="upload-icon">⬆</div>
+    <b>Upload a school file</b>
+    <small>PDF, PPT/PPTX, DOC/DOCX, XLS/XLSX, images, ZIP, TXT · up to 25&nbsp;MB each</small>
+    <div class="filetypes">
+      <span>PDF</span><span>PPT</span><span>DOC</span><span>XLS</span><span>IMG</span><span>ZIP</span><span>TXT</span>
+    </div>
+    <button class="primary mt13" onclick="pickFiles()">＋ Choose File(s)</button>
+    <input id="fileInput" type="file" multiple class="hidden"
+           accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp,.zip,.rar,.txt,.md"
+           onchange="handleFilesPicked(event)">
+  </div>
+
+  <div class="twocol">
+    <div class="field"><input id="fileSearch" placeholder="🔍 Search files…" oninput="renderFiles()"></div>
+    <div class="field"><select id="fileSubjectFilter" onchange="renderFiles()"></select></div>
+  </div>
+
+  <div class="chipbar" id="fileTypeChips"></div>
+
+  <label class="checkrow inline">
+    <input type="checkbox" id="onlyShared" onchange="renderFiles()">
+    <span>Show class-shared only</span>
+  </label>
+
+  <div class="filelist" id="fileList"></div>
+</section>
+
+<!-- UPLOAD DETAILS -->
+<section class="screen hidden" id="uploading">
+  <div class="topbar">
+    <button class="iconbtn" onclick="cancelUpload()">‹</button>
+    <h2>Finish Upload</h2>
+    <span class="topspace"></span>
+  </div>
+
+  <p class="subtitle">Give the file a clear name and subject so it is easy to find later.</p>
+
+  <div class="picked" id="pickedSummary"></div>
+
+  <div class="field"><label>File name *</label>
+    <input id="upName" placeholder="e.g. Quarter 2 Trigonometry Slides"></div>
+
+  <div class="field"><label>Subject</label>
+    <select id="upSubject"></select></div>
+
+  <div class="field"><label>Kind</label>
+    <select id="upKind">
+      <option value="">Auto-detect from file type</option>
+      <option>Slides</option><option>Document</option><option>Spreadsheet</option>
+      <option>Image</option><option>Archive</option><option>Text</option><option>Other</option>
+    </select></div>
+
+  <div class="field"><label>Notes for my class <span class="muted">(optional)</span></label>
+    <textarea id="upNote" rows="3" placeholder="e.g. Read pages 4-9 before Friday."></textarea></div>
+
+  <label class="checkrow"><input type="checkbox" id="upShare">
+    <span id="upShareLabel">Share this file with the class library</span></label>
+
+  <div class="progress hidden" id="upProgress"><i></i></div>
+
+  <button class="primary" onclick="confirmUpload()">✓ Save to Archive</button>
+  <button class="outline mt8" onclick="cancelUpload()">Cancel</button>
+</section>
+
+<!-- PROFILE -->
+<section class="screen hidden" id="profile">
+  <div class="topbar">
+    <button class="iconbtn" onclick="go('dashboard')">‹</button>
+    <h2>Profile</h2>
+    <button class="iconbtn" onclick="go('settings')">⚙</button>
+  </div>
+
+  <div class="profilehead">
+    <div class="avatar big" id="profileAvatar">N</div>
+    <h1 id="profileName">—</h1>
+    <p class="subtitle" id="profileEmail">—</p>
+    <div class="badges" id="profileBadges"></div>
+  </div>
+
+  <div class="stats" id="profileStats"></div>
+
+  <div class="menu">
+    <button onclick="go('myprofile')"><span>🙍 My Profile & Photo Colour</span><b>›</b></button>
+    <button onclick="openPasswordScreen()"><span>🔑 Change Password</span><b>›</b></button>
+    <button onclick="go('settings')"><span>⚙ App Settings</span><b>›</b></button>
+    <button id="modeToggleButton" onclick="toggleWebsiteMode()"><span>🌐 Switch to Website Mode</span><b>›</b></button>
+    <button onclick="go('files')"><span>📁 My File Archive</span><b>›</b></button>
+    <button onclick="go('class')"><span>🏫 Class Library</span><b>›</b></button>
+    <button onclick="go('help')"><span>ℹ Help & Support</span><b>›</b></button>
+    <button onclick="exportBackup()"><span>⬇ Back Up My Data</span><b>›</b></button>
+    <button class="danger" onclick="logout()"><span>↪ Log Out</span><b>›</b></button>
+  </div>
+</section>
+
+<!-- EDIT PROFILE -->
+<section class="screen hidden" id="myprofile">
+  <div class="topbar">
+    <button class="iconbtn" onclick="goBack()">‹</button>
+    <h2>My Profile</h2>
+    <span class="topspace"></span>
+  </div>
+
+  <div class="profilehead">
+    <div class="avatar big" id="editAvatar">N</div>
+    <p class="subtitle">Pick a colour — it becomes your avatar.</p>
+    <div class="swatches" id="avatarSwatches"></div>
+  </div>
+
+  <div class="field"><label>Full Name</label><input id="pfName"></div>
+  <div class="field"><label>Email</label><input id="pfEmail" type="email"></div>
+  <div class="field"><label>Class / Section</label><input id="pfClass" placeholder="e.g. Grade 9 - Rizal"></div>
+
+  <div class="field"><label>I am a…</label>
+    <div class="roleswitch" id="pfRoles">
+      <button type="button" class="roleopt" data-role="student">🎓 Student</button>
+      <button type="button" class="roleopt" data-role="teacher">🧑‍🏫 Teacher</button>
+    </div>
+  </div>
+
+  <button class="primary" onclick="saveProfile()">Save Profile</button>
+</section>
+
+<!-- CHANGE PASSWORD -->
+<section class="screen hidden" id="password">
+  <div class="topbar">
+    <button class="iconbtn" onclick="goBack()">‹</button>
+    <h2>Change Password</h2>
+    <span class="topspace"></span>
+  </div>
+
+  <p class="subtitle">Choose something you can remember — you type it every day.</p>
+
+  <div class="field"><label>Current Password *</label>
+    <div class="passwrap">
+      <input id="cpOld" type="password" autocomplete="current-password">
+      <button type="button" class="eye" onclick="togglePass('cpOld',this)">👁</button>
+    </div>
+    <div class="hint" id="cpOldHint"></div>
+  </div>
+
+  <div class="field"><label>New Password *</label>
+    <div class="passwrap">
+      <input id="cpNew" type="password" autocomplete="new-password" oninput="passwordFeedback()">
+      <button type="button" class="eye" onclick="togglePass('cpNew',this)">👁</button>
+    </div>
+    <div class="meter" id="cpMeter"><i></i><i></i><i></i><i></i></div>
+    <div class="hint" id="cpHint">6+ characters · add a number or symbol to make it strong.</div>
+  </div>
+
+  <div class="field"><label>Confirm New Password *</label>
+    <div class="passwrap">
+      <input id="cpNew2" type="password" autocomplete="new-password">
+      <button type="button" class="eye" onclick="togglePass('cpNew2',this)">👁</button>
+    </div>
+    <div class="hint" id="cpMatchHint"></div>
+  </div>
+
+  <label class="checkrow"><input type="checkbox" id="cpKeepIn" checked>
+    <span>Stay logged in after changing</span></label>
+
+  <button class="primary" onclick="changePassword()">🔑 Update Password</button>
+  <button class="outline mt8" onclick="go('forgot')">I forgot my current password</button>
+</section>
+
+<!-- SETTINGS -->
+<section class="screen hidden" id="settings">
+  <div class="topbar">
+    <button class="iconbtn" onclick="goBack()">‹</button>
+    <h2>App Settings</h2>
+    <span class="topspace"></span>
+  </div>
+
+  <div class="setgroup">
+    <div class="setlabel">Appearance</div>
+    <div class="field"><label>Theme</label>
+      <div class="segment" id="themeSeg">
+        <button type="button" data-theme="light">☀ Light</button>
+        <button type="button" data-theme="dark">🌙 Dark</button>
+        <button type="button" data-theme="auto">🌗 Auto</button>
+      </div></div>
+    <div class="field"><label>Text size</label>
+      <div class="segment" id="textSeg">
+        <button type="button" data-scale="0.92">S</button>
+        <button type="button" data-scale="1">M</button>
+        <button type="button" data-scale="1.12">L</button>
+        <button type="button" data-scale="1.25">XL</button>
+      </div></div>
+    <label class="checkrow"><input type="checkbox" id="setMotion">
+      <span>Reduce animations (calmer transitions)</span></label>
+  </div>
+
+  <div class="setgroup">
+    <div class="setlabel">Studying</div>
+    <div class="field"><label>Default subject for a new note</label>
+      <select id="setDefaultSubject"></select></div>
+    <label class="checkrow"><input type="checkbox" id="setAutosave" checked>
+      <span>Keep unsaved note drafts automatically</span></label>
+    <label class="checkrow"><input type="checkbox" id="setCompact">
+      <span>Compact list view (more notes on screen)</span></label>
+  </div>
+
+  <div class="setgroup">
+    <div class="setlabel">Data on this device</div>
+    <div class="usage" id="storageUsage">Checking storage…</div>
+    <button class="outline" onclick="exportBackup()">⬇ Export backup file</button>
+    <button class="outline mt8" onclick="document.getElementById('importInput').click()">⬆ Import backup file</button>
+    <input id="importInput" type="file" accept="application/json,.json" class="hidden" onchange="importBackup(event)">
+    <button class="outline mt8" onclick="openPasswordScreen()">🔑 Change password</button>
+    <button class="outline dangerbtn mt8" onclick="clearMyNotes()">🗑 Delete all my notes</button>
+    <button class="outline dangerbtn mt8" onclick="deleteMyAccount()">⚠ Delete my account</button>
+  </div>
+
+  <div class="center mt16 small muted">NotesArchive v1.0 · everything is stored locally</div>
+</section>
+
+<!-- HELP -->
+<section class="screen hidden" id="help">
+  <div class="topbar">
+    <button class="iconbtn" onclick="goBack()">‹</button>
+    <h2>Help & Support</h2>
+    <span class="topspace"></span>
+  </div>
+
+  <div class="field"><input id="helpSearch" placeholder="🔍 Search help topics…" oninput="renderHelp()"></div>
+  <div class="faq" id="faqList"></div>
+
+  <div class="setgroup">
+    <div class="setlabel">Still stuck?</div>
+    <button class="outline" onclick="resetAppHelp()">🧹 Reset the app to a clean start</button>
+    <button class="outline mt8" onclick="sendFeedback()">✉ Send feedback to your teacher</button>
+    <div class="hint mt8">Tip: press <b>Esc</b> to go back, <b>Ctrl+K</b> to search notes, <b>Ctrl+N</b> for a new note.</div>
+  </div>
+</section>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom hidden" id="bottomNav">
+  <button class="navbtn" data-nav="dashboard" onclick="go('dashboard')"><span>⌂</span>Home</button>
+  <button class="navbtn" data-nav="notes" onclick="go('notes')"><span>▤</span>Notes</button>
+  <button class="addbtn" onclick="openQuickAdd()" aria-label="Quick add">＋</button>
+  <button class="navbtn" data-nav="class" onclick="go('class')"><span>🏫</span>Class</button>
+  <button class="navbtn" data-nav="profile" onclick="go('profile')"><span>👤</span>Profile</button>
+</nav>
+
+</div>
+</div>
+
+<!-- ==========================================================
+     OVERLAYS
+========================================================== -->
+
+<div class="sheet hidden" id="quickSheet">
+  <div class="sheetbox">
+    <div class="grab"></div>
+    <div class="sheetgrid">
+      <button onclick="sheetAction('note')">✎<small>New note</small></button>
+      <button onclick="sheetAction('file')">⬆<small>Upload file</small></button>
+      <button onclick="sheetAction('subject')">＋<small>New subject</small></button>
+      <button onclick="sheetAction('class')">🏫<small>Class library</small></button>
+    </div>
+    <button class="outline mt8" onclick="closeSheets()">Close</button>
+  </div>
+</div>
+
+<div class="modal hidden" id="confirmModal">
+  <div class="modalbox">
+    <h3 id="cmTitle">Are you sure?</h3>
+    <p id="cmBody"></p>
+    <div class="field hidden" id="cmExtraWrap"><input id="cmExtra" placeholder=""></div>
+    <div class="actions">
+      <button class="outline" onclick="resolveConfirm(false)">Cancel</button>
+      <button class="primary danger" id="cmOk" onclick="resolveConfirm(true)">Yes</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="noteMenuModal">
+  <div class="modalbox">
+    <h3>Note options</h3>
+    <div class="menu plain">
+      <button onclick="menuGo('edit')"><span>✎ Edit note</span><b>›</b></button>
+      <button onclick="duplicateCurrent()"><span>⧉ Make a copy</span><b>›</b></button>
+      <button onclick="exportCurrentNote('txt')"><span>⬇ Download as .txt</span><b>›</b></button>
+      <button onclick="exportCurrentNote('html')"><span>⬇ Download as .html</span><b>›</b></button>
+      <button onclick="printCurrent()"><span>🖨 Print / save as PDF</span><b>›</b></button>
+      <button onclick="menuToggleShare()"><span id="mnShareLabel">⇪ Share with class</span><b>›</b></button>
+      <button class="danger" onclick="menuGo('delete')"><span>🗑 Delete note</span><b>›</b></button>
+    </div>
+    <button class="outline mt8" onclick="hide('noteMenuModal')">Keep reading</button>
+  </div>
+</div>
+
+<div class="modal hidden" id="subjectModal">
+  <div class="modalbox">
+    <h3 id="smTitle">New Subject</h3>
+    <div class="field"><label>Subject name *</label>
+      <input id="smName" placeholder="e.g. History"></div>
+    <div class="field"><label>Icon</label>
+      <div class="iconpick" id="smIcons"></div></div>
+    <div class="field"><label>Colour</label>
+      <div class="swatches" id="smColors"></div></div>
+    <div class="actions">
+      <button class="outline" onclick="hide('subjectModal')">Cancel</button>
+      <button class="primary" onclick="saveSubjectModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="fileModal">
+  <div class="modalbox">
+    <div class="modaltop">
+      <b>File Information</b>
+      <button class="iconbtn" onclick="closeFileModal()">✕</button>
+    </div>
+    <div class="file-detail-icon" id="fileDetailIcon">PDF</div>
+    <div class="file-detail-name" id="fileDetailName">File name</div>
+    <div class="file-detail-info" id="fileDetailInfo"></div>
+    <div class="previewbox hidden" id="filePreview"></div>
+    <div class="field hidden" id="fdNoteWrap"><label>Teacher note</label>
+      <div class="notehint" id="fdNote"></div></div>
+    <label class="checkrow"><input type="checkbox" id="fdShare" onchange="toggleFileShare()">
+      <span>Share with the class library</span></label>
+    <div class="grid2">
+      <button class="primary" onclick="previewSelected()">👁 Preview</button>
+      <button class="primary" onclick="downloadSelected()">⬇ Download</button>
+    </div>
+    <button class="outline dangerbtn mt8" onclick="deleteSelected()">🗑 Delete file</button>
+    <button class="outline mt8" onclick="closeFileModal()">Close</button>
+  </div>
+</div>
+
+<div class="lightbox hidden" id="lightbox" onclick="hide('lightbox')">
+  <img id="lightboxImg" alt="File preview">
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script>
+/* ===== Embedded store.js ===== */
+/* ==========================================================================
+   store.js — on-device persistence, helpers, shared UI primitives
+   Data never leaves the browser: localStorage for records, IndexedDB for
+   file bytes.
+   ========================================================================== */
+
+'use strict';
+
+var KEYS = {
+  users:  'na.users.v1',
+  session:'na.session.v1',
+  data:   'na.userdata.v1',
+  files:  'na.filemeta.v1'
+};
+
+var DEFAULT_SUBJECTS = [
+  { name:'Mathematics', icon:'📐', color:'#315fe1' },
+  { name:'Science',     icon:'🔬', color:'#20a06a' },
+  { name:'English',     icon:'📖', color:'#e95378' },
+  { name:'ICT',         icon:'💻', color:'#6557ee' }
+];
+
+var SUBJECT_COLORS = ['#315fe1','#6557ee','#20a06a','#e95378','#f0a43c','#0ea5b7','#8b5cf6','#ef4444'];
+var SUBJECT_ICONS  = ['📐','🔬','📖','💻','📚','🧭','🎨','🎵','⚽','🏛','🧮','🌱','🩺','💼','🗺','📝'];
+
+var DEFAULT_SETTINGS = {
+  theme:'auto', scale:1, motion:false, autosave:true,
+  defaultSubject:'', compact:false
+};
+
+var App = { users:[], data:{}, files:[], session:null, user:null, s:{}, screen:'splash', stack:[] };
+
+/* ---------------- localStorage helpers ---------------- */
+
+function lsGet(key, fallback){
+  try{
+    var raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  }catch(e){ return fallback; }
+}
+function lsSet(key, value){
+  try{
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  }catch(e){
+    toast('Device storage is full — free space and try again.', 'bad');
+    return false;
+  }
+}
+
+function loadStore(){
+  App.users = lsGet(KEYS.users, []);
+  App.data  = lsGet(KEYS.data, {});
+  App.files = lsGet(KEYS.files, []);
+  App.session = lsGet(KEYS.session, null);
+  App.user = App.users.filter(function(u){ return u.id === App.session; })[0] || null;
+  if(App.user) App.s = settingsFor(App.user.id);
+}
+function saveUsers(){ lsSet(KEYS.users, App.users); }
+function saveAllData(){ lsSet(KEYS.data, App.data); }
+function saveFileMeta(){ lsSet(KEYS.files, App.files); }
+function saveSession(){ if(App.session) lsSet(KEYS.session, App.session); else localStorage.removeItem(KEYS.session); }
+
+/* ---------------- per-user data ---------------- */
+
+function userData(id){
+  if(!App.data[id]) App.data[id] = { notes:[], subjects:[], settings:{} };
+  var d = App.data[id];
+  if(!d.notes)    d.notes = [];
+  if(!d.subjects) d.subjects = [];
+  if(!d.settings) d.settings = {};
+  return d;
+}
+function subjectsFor(id){
+  var d = userData(id);
+  var all = DEFAULT_SUBJECTS.slice();
+  (d.subjects || []).forEach(function(s){
+    var known = all.some(function(x){ return x.name.toLowerCase() === s.name.toLowerCase(); });
+    if(!known) all.push(s);
+  });
+  return all;
+}
+function mySubjects(){ return App.user ? subjectsFor(App.user.id) : DEFAULT_SUBJECTS.slice(); }
+
+function settingsFor(id){
+  var s = userData(id).settings;
+  var out = {};
+  Object.keys(DEFAULT_SETTINGS).forEach(function(k){ out[k] = (s[k] === undefined ? DEFAULT_SETTINGS[k] : s[k]); });
+  return out;
+}
+function saveSettings(patch){
+  var s = userData(App.user.id).settings;
+  Object.keys(patch).forEach(function(k){ s[k] = patch[k]; });
+  App.s = settingsFor(App.user.id);
+  saveAllData();
+  applySettings();
+}
+function applySettings(){
+  var s = App.session ? App.s : DEFAULT_SETTINGS;
+  var theme = s.theme === 'auto'
+    ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : s.theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.style.setProperty('--fs', s.scale);
+  document.documentElement.setAttribute('data-motion', s.motion ? 'off' : 'on');
+  document.documentElement.setAttribute('data-compact', s.compact ? 'on' : 'off');
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', theme === 'dark' ? '#141a2e' : '#2855b8');
+}
+
+/* ---------------- accounts ---------------- */
+
+function uid(){
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+function makeSalt(){
+  var out = '', chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  for(var i = 0; i < 16; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+function basicHash(text){
+  var h1 = 0x811c9dc5, h2 = 0x1000193;
+  for(var i = 0; i < text.length; i++){
+    var c = text.charCodeAt(i);
+    h1 = (h1 ^ c) * 16777619 >>> 0;
+    h2 = (h2 + c * (i + 7)) >>> 0;
+  }
+  return (h1.toString(16) + '-' + h2.toString(16));
+}
+function hashPassword(password, salt){
+  var mixed = salt + '::' + password + '::' + salt.length;
+  if(window.crypto && crypto.subtle && crypto.TextEncoder){
+    try{
+      var buf = new TextEncoder().encode(mixed);
+      return crypto.subtle.digest('SHA-256', buf).then(function(digest){
+        return Array.prototype.map.call(new Uint8Array(digest), function(b){
+          return ('0' + b.toString(16)).slice(-2);
+        }).join('');
+      });
+    }catch(e){ /* fall through to local digest */ }
+  }
+  return Promise.resolve('local-' + basicHash(mixed));
+}
+function verifyPassword(user, password){
+  return hashPassword(password, user.salt).then(function(hash){ return hash === user.hash; });
+}
+function findUserByEmail(email){
+  var needle = String(email || '').trim().toLowerCase();
+  return App.users.filter(function(u){ return u.email.toLowerCase() === needle; })[0] || null;
+}
+var HONORIFICS = ['ma', 'mr', 'mrs', 'ms', 'dr', 'rev', 'eng', 'hon', 'prof', 'sir', 'madam', 'gin', 'gu'];
+function firstName(name){
+  var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return 'there';
+  var first = parts[0].replace(/\.$/, '').toLowerCase();
+  if(HONORIFICS.indexOf(first) !== -1 && parts[1]) return parts[1].replace(/[^\w'-]/g, '') || parts[0];
+  return parts[0].replace(/[^\w'-]/g, '') || parts[0];
+}
+function initialsOf(name){
+  var parts = String(name || '').trim().split(/\s+/);
+  if(!parts[0]) return 'N';
+  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+}
+function passwordScore(pw){
+  var score = 0;
+  if(!pw) return 0;
+  if(pw.length >= 6) score++;
+  if(pw.length >= 10) score++;
+  if(/[0-9]/.test(pw) && /[a-zA-Z]/.test(pw)) score++;
+  if(/[^a-zA-Z0-9]/.test(pw) || (pw.length >= 12 && /[A-Z]/.test(pw))) score++;
+  return Math.min(score, 4);
+}
+function renderMeter(el, pw){
+  if(!el) return;
+  el.className = 'meter' + (pw ? ' on' + Math.max(1, passwordScore(pw)) : '');
+}
+function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || '').trim()); }
+
+function currentUser(){ return App.user; }
+function myNotes(){ return App.user ? userData(App.user.id).notes : []; }
+function setSession(id){
+  App.session = id;
+  App.user = App.users.filter(function(u){ return u.id === id; })[0] || null;
+  App.s = App.user ? settingsFor(App.user.id) : DEFAULT_SETTINGS;
+  saveSession();
+  applySettings();
+}
+
+/* ---------------- shared class content ---------------- */
+
+function classNotes(){
+  var out = [];
+  App.users.forEach(function(u){
+    (userData(u.id).notes || []).forEach(function(n){
+      if(n.shared) out.push(Object.assign({}, n, { ownerId:u.id, ownerName:u.name, ownerRole:u.role }));
+    });
+  });
+  return out.sort(function(a, b){ return b.updatedAt - a.updatedAt; });
+}
+function classFiles(){
+  return App.files.filter(function(f){ return f.shared; }).map(function(f){
+    var owner = ownerOf(f.ownerId);
+    return Object.assign({}, f, {
+      ownerName: owner ? owner.name : 'Former classmate',
+      ownerRole: owner ? owner.role : 'student'
+    });
+  }).sort(function(a, b){ return b.createdAt - a.createdAt; });
+}
+function ownerOf(id){ return App.users.filter(function(u){ return u.id === id; })[0] || null; }
+function isTeacher(){ return !!(App.user && App.user.role === 'teacher'); }
+
+/* ---------------- file bytes (IndexedDB) ---------------- */
+
+var IDB_NAME = 'NotesArchiveFiles', IDB_STORE = 'blobs', idbHandle = null;
+
+function openFileDB(){
+  return new Promise(function(resolve, reject){
+    if(idbHandle) return resolve(idbHandle);
+    if(!window.indexedDB) return reject(new Error('IndexedDB unavailable'));
+    var req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = function(){
+      var db = req.result;
+      if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = function(){ idbHandle = req.result; resolve(idbHandle); };
+    req.onerror = function(){ reject(req.error || new Error('IndexedDB blocked')); };
+  });
+}
+function idbCall(mode, fn){
+  return openFileDB().then(function(db){
+    return new Promise(function(resolve, reject){
+      var tx = db.transaction(IDB_STORE, mode);
+      var store = tx.objectStore(IDB_STORE);
+      var req = fn(store);
+      tx.oncomplete = function(){ resolve(req ? req.result : true); };
+      tx.onerror = function(){ reject(tx.error || new Error('Storage error')); };
+      tx.onabort = function(){ reject(tx.error || new Error('Storage aborted')); };
+    });
+  });
+}
+function putBlob(id, blob){ return idbCall('readwrite', function(s){ s.put(blob, id); }); }
+function getBlob(id){ return idbCall('readonly', function(s){ return s.get(id); }); }
+function delBlob(id){ return idbCall('readwrite', function(s){ s.delete(id); }); }
+
+/* ---------------- downloads ---------------- */
+
+function saveBlob(name, blob){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1200);
+}
+function saveText(name, text, mime){ saveBlob(name, new Blob([text], { type: mime || 'text/plain' })); }
+
+/* ---------------- formatting ---------------- */
+
+function escapeHtml(s){
+  return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function(m){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m];
+  });
+}
+function stripHtml(html){
+  var d = document.createElement('div');
+  d.innerHTML = String(html || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h\d)>/gi, '\n');
+  return (d.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+}
+function formatBytes(bytes){
+  var n = Number(bytes) || 0;
+  if(n < 1024) return n + ' B';
+  var units = ['KB','MB','GB'], i = 0, v = n / 1024;
+  while(v >= 1024 && i < units.length - 1){ v /= 1024; i++; }
+  return (v < 10 ? v.toFixed(1) : Math.round(v)) + ' ' + units[i];
+}
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function formatDate(ts){
+  var d = new Date(Number(ts) || Date.now());
+  return MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+function formatDateTime(ts){
+  var d = new Date(Number(ts) || Date.now());
+  var h = d.getHours(), m = ('0' + d.getMinutes()).slice(-2);
+  var ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+  return formatDate(ts) + ' · ' + h + ':' + m + ' ' + ap;
+}
+function timeAgo(ts){
+  var diff = Date.now() - Number(ts);
+  if(diff < 0) return 'just now';
+  var min = Math.floor(diff / 60000);
+  if(min < 1) return 'just now';
+  if(min < 60) return min + 'm ago';
+  var hrs = Math.floor(min / 60);
+  if(hrs < 24) return hrs + 'h ago';
+  var days = Math.floor(hrs / 24);
+  if(days < 7) return days + 'd ago';
+  if(days < 31) return Math.floor(days / 7) + 'w ago';
+  return formatDate(ts);
+}
+
+/* ---------------- shared UI ---------------- */
+
+function $(id){ return document.getElementById(id); }
+function show(id){ if($(id)) $(id).classList.remove('hidden'); }
+function hide(id){ if($(id)) $(id).classList.add('hidden'); }
+function togglePass(id, btn){
+  var input = $(id);
+  if(!input) return;
+  input.type = input.type === 'password' ? 'text' : 'password';
+  if(btn) btn.textContent = input.type === 'password' ? '👁' : '🙈';
+  input.focus();
+}
+
+var toastTimer = null;
+function toast(msg, kind){
+  var t = $('toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'toast' + (kind ? ' ' + kind : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.add('hidden'); }, 2400);
+}
+
+var confirmResolver = null;
+function confirmDialog(opts){
+  var o = opts || {};
+  $('cmTitle').textContent = o.title || 'Are you sure?';
+  $('cmBody').textContent = o.message || '';
+  $('cmOk').textContent = o.okText || 'Confirm';
+  $('cmOk').className = 'primary' + (o.danger === false ? '' : ' danger');
+  var extra = $('cmExtraWrap'), input = $('cmExtra');
+  if(o.placeholder){ extra.classList.remove('hidden'); input.value = ''; input.placeholder = o.placeholder; }
+  else extra.classList.add('hidden');
+  show('confirmModal');
+  setTimeout(function(){ (o.placeholder ? input : $('cmOk')).focus(); }, 60);
+  return new Promise(function(resolve){ confirmResolver = resolve; });
+}
+function resolveConfirm(ok){
+  var extra = $('cmExtra').value.trim();
+  hide('confirmModal');
+  if(confirmResolver){ confirmResolver(ok ? (extra || true) : false); confirmResolver = null; }
+}
+
+/* ---------------- backup / restore ---------------- */
+
+function buildBackup(){
+  return {
+    app:'NotesArchive', version:1, exportedAt:new Date().toISOString(),
+    users:App.users, data:App.data, files:App.files.map(function(f){
+      var c = Object.assign({}, f); delete c._blob; return c;
+    })
+  };
+}
+function exportBackup(){
+  if(!App.user) return;
+  var name = 'notesarchive-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  saveText(name, JSON.stringify(buildBackup(), null, 2), 'application/json');
+  toast('Backup file downloaded ✓', 'good');
+}
+function importBackup(event){
+  var file = event.target.files && event.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    var payload;
+    try{ payload = JSON.parse(String(reader.result)); }
+    catch(e){ toast('That file is not a valid backup.', 'bad'); event.target.value = ''; return; }
+    if(!payload || payload.app !== 'NotesArchive' || !payload.data){
+      toast('Unrecognized backup format.', 'bad'); event.target.value = ''; return;
+    }
+    confirmDialog({
+      title:'Restore this backup?',
+      message:'Notes, subjects and file lists from ' + formatDate(Date.parse(payload.exportedAt)) +
+        ' will replace what is on this device now. File attachments themselves are not included in backups.',
+      okText:'Restore'
+    }).then(function(ok){
+      if(!ok){ event.target.value = ''; return; }
+      App.users = payload.users || App.users;
+      App.data  = payload.data || {};
+      App.files = payload.files || [];
+      saveUsers(); saveAllData(); saveFileMeta();
+      var still = App.users.filter(function(u){ return u.id === App.session; })[0];
+      if(!still){ App.user = null; App.session = null; saveSession(); }
+      event.target.value = '';
+      toast('Backup restored ✓', 'good');
+      if(App.user){ refreshAfterDataChange(); go('dashboard'); } else go('login');
+    });
+  };
+  reader.readAsText(file);
+}
+
+function storageUsed(){
+  var bytes = 0;
+  try{
+    Object.keys(localStorage).forEach(function(k){ bytes += (localStorage.getItem(k) || '').length + k.length; });
+  }catch(e){}
+  return bytes;
+}
+
+</script>
+<script>
+/* ===== Embedded auth(1).js ===== */
+/* ==========================================================================
+   auth.js — accounts, passwords, profile, settings, help
+   ========================================================================== */
+
+'use strict';
+
+var signupRole = 'student';
+var pendingReset = null;   /* { userId, code } */
+var selectedColor = null;
+
+/* ---------------- sign up ---------------- */
+
+function initSignupScreen(){
+  signupRole = 'student';
+  document.querySelectorAll('#signupRoles .roleopt').forEach(function(b){
+    b.classList.toggle('active', b.dataset.role === signupRole);
+  });
+  document.querySelectorAll('#signupRoles .roleopt').forEach(function(b){
+    b.onclick = function(){
+      signupRole = b.dataset.role;
+      document.querySelectorAll('#signupRoles .roleopt').forEach(function(x){
+        x.classList.toggle('active', x === b);
+      });
+      var email = $('signupEmail').value.trim();
+      if(!email) $('signupEmail').placeholder = signupRole === 'teacher'
+        ? 'teacher@school.edu' : 'student@school.edu';
+    };
+  });
+
+  var pw = $('signupPass');
+  pw.oninput = function(){
+    renderMeter($('signupMeter'), pw.value);
+    var score = passwordScore(pw.value);
+    var hint = $('signupHint');
+    var labels = ['Too short — use at least 6 characters.', 'Weak but usable.', 'Good password.',
+      'Strong password.', 'Very strong password.'];
+    hint.textContent = labels[Math.max(score, pw.value ? 1 : 0)];
+    hint.className = 'hint' + (score >= 3 ? ' good' : (pw.value && score <= 1 ? ' bad' : ''));
+  };
+}
+
+function signup(){
+  var name = $('signupName').value.trim();
+  var email = $('signupEmail').value.trim();
+  var className = $('signupClass').value.trim();
+  var pw = $('signupPass').value;
+  var pw2 = $('signupPass2').value;
+
+  if(name.length < 2) return toast('Please enter your full name.', 'bad');
+  if(!isEmail(email))  return toast('That email address looks incomplete.', 'bad');
+  if(findUserByEmail(email)) return toast('That email already has an account — log in instead.', 'bad');
+  if(pw.length < 6)    return toast('Use at least 6 characters for your password.', 'bad');
+  if(pw !== pw2)       return toast('The two passwords do not match.', 'bad');
+
+  var btn = $('btnSignup');
+  btn.disabled = true; btn.textContent = 'Creating…';
+
+  var salt = makeSalt();
+  hashPassword(pw, salt).then(function(hash){
+    var user = {
+      id: uid(), name: name, email: email, role: signupRole,
+      className: className, salt: salt, hash: hash, color: SUBJECT_COLORS[0],
+      createdAt: Date.now()
+    };
+    App.users.push(user);
+    userData(user.id).subjects = [];
+    saveUsers(); saveAllData();
+
+    var data = userData(user.id);
+    if(signupRole === 'teacher') seedWelcome(user, data);
+    saveAllData();
+
+    btn.disabled = false; btn.textContent = 'Create Account';
+    $('signupName').value = ''; $('signupEmail').value = '';
+    $('signupPass').value = ''; $('signupPass2').value = ''; $('signupClass').value = '';
+    renderMeter($('signupMeter'), '');
+
+    setSession(user.id);
+    toast('Welcome, ' + firstName(name) + '! Your workspace is ready ✓', 'good');
+    enterApp();
+  });
+}
+
+function seedWelcome(user, data){
+  data.notes.push({
+    id: uid(), title:'How to use the Class Library',
+    subject:'ICT', icon:'💻',
+    content:'<p>Share your lesson notes and files with the whole class from here.</p>' +
+      '<h3>Quick tips</h3><ul><li>Tick <b>Share with my class library</b> when saving a note.</li>' +
+      '<li>Upload slides or worksheets in the File Archive and tick the same box.</li>' +
+      '<li>Students can copy any shared note into their own list with one tap.</li></ul>',
+    pinned:true, shared:true, createdAt:Date.now(), updatedAt:Date.now()
+  });
+}
+
+/* ---------------- login ---------------- */
+
+function initLoginScreen(){
+  var remembered = lsGet('na.remember.v1', null);
+  if(remembered && findUserByEmail(remembered)){
+    $('loginEmail').value = remembered;
+    $('rememberMe').checked = true;
+  }
+  $('loginPass').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') login();
+  });
+  $('signupPass2').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') signup();
+  });
+  renderKnownAccounts();
+}
+
+function renderKnownAccounts(){
+  var box = $('knownAccounts');
+  var others = App.users.filter(function(u){ return u.id !== App.session; });
+  if(!others.length){ box.innerHTML = ''; return; }
+  box.innerHTML = '<div class="hint">Accounts on this device — tap to fill your email:</div>' +
+    others.slice(0, 5).map(function(u){
+      return '<button class="outline" style="padding:10px;text-align:left" data-email="' +
+        escapeHtml(u.email) + '">' + (u.role === 'teacher' ? '🧑‍🏫 ' : '🎓 ') +
+        escapeHtml(u.name) + ' <small class="muted">· ' + escapeHtml(u.email) + '</small></button>';
+    }).join('');
+  box.querySelectorAll('button').forEach(function(b){
+    b.onclick = function(){
+      $('loginEmail').value = b.dataset.email;
+      $('loginPass').focus();
+    };
+  });
+}
+
+function login(){
+  var email = $('loginEmail').value.trim();
+  var pw = $('loginPass').value;
+  if(!email || !pw) return toast('Enter your email and password.', 'bad');
+
+  var user = findUserByEmail(email);
+  if(!user){
+    toast('No account with that email on this device.', 'bad');
+    return;
+  }
+  verifyPassword(user, pw).then(function(ok){
+    if(!ok){ toast('That password does not match. Try again.', 'bad'); $('loginPass').select(); return; }
+    if($('rememberMe').checked) lsSet('na.remember.v1', user.email);
+    else localStorage.removeItem('na.remember.v1');
+    user.lastLogin = Date.now();
+    saveUsers();
+    setSession(user.id);
+    toast('Welcome back, ' + firstName(user.name) + ' 👋', 'good');
+    enterApp();
+  });
+}
+
+function googleDemo(){
+  var email = 'demo.user@gmail.com';
+  var user = findUserByEmail(email);
+  if(!user){
+    var salt = makeSalt();
+    hashPassword('demo1234', salt).then(function(hash){
+      var created = { id:uid(), name:'Demo Student', email:email, role:'student', className:'Grade 9 - Rizal',
+        salt:salt, hash:hash, color:SUBJECT_COLORS[4], createdAt:Date.now() };
+      App.users.push(created); saveUsers();
+      setSession(created.id);
+      toast('Signed in with the Google demo account ✓', 'good');
+      enterApp();
+    });
+    return;
+  }
+  setSession(user.id);
+  toast('Welcome back, ' + firstName(user.name) + ' ✓', 'good');
+  enterApp();
+}
+
+function logout(){
+  confirmDialog({
+    title:'Log out?', message:'Your notes stay on this device. You can log back in any time.',
+    okText:'Log Out', danger:false
+  }).then(function(ok){
+    if(!ok) return;
+    App.session = null; App.user = null; saveSession();
+    App.stack = [];
+    renderKnownAccounts();
+    go('login');
+    toast('Logged out.');
+  });
+}
+
+/* ---------------- forgot password ---------------- */
+
+function forgotLookup(){
+  var email = $('fpEmail').value.trim();
+  var user = findUserByEmail(email);
+  if(!user){ toast('No account with that email on this device.', 'bad'); return; }
+  var code = String(Math.floor(100000 + Math.random() * 900000));
+  pendingReset = { userId:user.id, code:code, madeAt:Date.now() };
+  $('fpCode').textContent = code;
+  $('forgotStep1').classList.add('hidden');
+  $('forgotStep2').classList.remove('hidden');
+  $('fpCodeInput').focus();
+  toast('Reset code ready — it only shows here, on your device.');
+}
+
+function forgotReset(){
+  if(!pendingReset){ toast('Request a reset code first.', 'bad'); return; }
+  if($('fpCodeInput').value.trim() !== pendingReset.code)
+    return toast('That code does not match.', 'bad');
+  var pw = $('fpNew').value, pw2 = $('fpNew2').value;
+  if(pw.length < 6) return toast('New password needs 6+ characters.', 'bad');
+  if(pw !== pw2)    return toast('The two passwords do not match.', 'bad');
+
+  var user = ownerOf(pendingReset.userId);
+  if(!user){ pendingReset = null; return toast('Account not found.', 'bad'); }
+
+  hashPassword(pw, user.salt).then(function(hash){
+    user.hash = hash;
+    saveUsers();
+    pendingReset = null;
+    $('forgotStep1').classList.remove('hidden');
+    $('forgotStep2').classList.add('hidden');
+    ['fpEmail','fpCodeInput','fpNew','fpNew2'].forEach(function(id){ $(id).value = ''; });
+    toast('Password updated — you can log in now ✓', 'good');
+    go('login');
+    $('loginEmail').value = user.email;
+    setTimeout(function(){ $('loginPass').focus(); }, 300);
+  });
+}
+
+/* ---------------- change password ---------------- */
+
+function openPasswordScreen(){
+  go('password');
+}
+function resetPasswordForm(){
+  $('cpOld').value = ''; $('cpNew').value = ''; $('cpNew2').value = '';
+  $('cpMeter').className = 'meter';
+  $('cpOldHint').textContent = ''; $('cpOldHint').className = 'hint';
+  $('cpHint').textContent = '6+ characters · add a number or symbol to make it strong.';
+  $('cpHint').className = 'hint';
+  $('cpMatchHint').textContent = ''; $('cpMatchHint').className = 'hint';
+  $('cpOld').oninput = passwordFeedback;
+  $('cpNew2').oninput = matchFeedback;
+  setTimeout(function(){ $('cpOld').focus(); }, 200);
+}
+
+function passwordFeedback(){
+  var pw = $('cpNew').value, old = $('cpOld').value;
+  renderMeter($('cpMeter'), pw);
+  var hint = $('cpHint');
+  if(!pw){ hint.textContent = '6+ characters · add a number or symbol to make it strong.'; hint.className = 'hint'; }
+  else if(pw === old){ hint.textContent = 'This is your current password — pick a new one.'; hint.className = 'hint bad'; }
+  else if(passwordScore(pw) >= 3){ hint.textContent = 'Strong enough. Easy to type every day.'; hint.className = 'hint good'; }
+  else { hint.textContent = 'Usable, but a number or symbol would make it stronger.'; hint.className = 'hint'; }
+  matchFeedback();
+}
+function matchFeedback(){
+  var pw = $('cpNew').value, pw2 = $('cpNew2').value, hint = $('cpMatchHint');
+  if(!pw2){ hint.textContent = ''; hint.className = 'hint'; return; }
+  if(pw === pw2){ hint.textContent = 'Passwords match ✓'; hint.className = 'hint good'; }
+  else { hint.textContent = 'Passwords do not match yet.'; hint.className = 'hint bad'; }
+}
+
+function changePassword(){
+  var oldPw = $('cpOld').value, pw = $('cpNew').value, pw2 = $('cpNew2').value;
+  if(!App.user) return;
+  if(!oldPw) return toast('Enter your current password.', 'bad');
+  if(pw.length < 6) return toast('New password needs 6+ characters.', 'bad');
+  if(pw === oldPw)  return toast('Choose a password different from the current one.', 'bad');
+  if(pw !== pw2)    return toast('The new passwords do not match.', 'bad');
+
+  verifyPassword(App.user, oldPw).then(function(ok){
+    if(!ok){
+      $('cpOldHint').textContent = 'That is not your current password.';
+      $('cpOldHint').className = 'hint bad';
+      toast('Current password is incorrect.', 'bad');
+      return;
+    }
+    hashPassword(pw, App.user.salt).then(function(hash){
+      App.user.hash = hash;
+      saveUsers();
+      $('cpOld').value = ''; $('cpNew').value = ''; $('cpNew2').value = '';
+      $('cpMeter').className = 'meter';
+      $('cpOldHint').textContent = ''; $('cpOldHint').className = 'hint';
+      $('cpMatchHint').textContent = '';
+      toast('Password changed ✓', 'good');
+      if(!$('cpKeepIn').checked){ logoutQuick(); return; }
+      go('profile');
+    });
+  });
+}
+
+function logoutQuick(){
+  App.session = null; App.user = null; saveSession();
+  App.stack = [];
+  go('login');
+  toast('You are signed out — log in with your new password.');
+}
+
+/* ---------------- profile ---------------- */
+
+function initProfileScreen(){
+  var u = App.user;
+  if(!u) return;
+  $('profileAvatar').textContent = initialsOf(u.name);
+  $('profileAvatar').style.background = u.color || SUBJECT_COLORS[0];
+  $('profileName').textContent = u.name;
+  $('profileEmail').textContent = u.email;
+
+  var notes = myNotes();
+  var shared = notes.filter(function(n){ return n.shared; }).length;
+  var myFiles = App.files.filter(function(f){ return f.ownerId === u.id; });
+  $('profileStats').innerHTML =
+    statBlock(notes.length, 'Notes') +
+    statBlock(myFiles.length, 'Files') +
+    statBlock(shared, 'Shared');
+
+  $('profileBadges').innerHTML =
+    '<span class="badge ' + u.role + '">' + (u.role === 'teacher' ? '🧑‍🏫 Teacher' : '🎓 Student') + '</span>' +
+    (u.className ? '<span class="badge">' + escapeHtml(u.className) + '</span>' : '') +
+    '<span class="badge">Joined ' + formatDate(u.createdAt) + '</span>';
+}
+
+function initEditProfileScreen(){
+  var u = App.user;
+  if(!u) return;
+  $('pfName').value = u.name;
+  $('pfEmail').value = u.email;
+  $('pfClass').value = u.className || '';
+  selectedColor = u.color || SUBJECT_COLORS[0];
+  renderSwatches();
+  paintEditAvatar();
+  document.querySelectorAll('#pfRoles .roleopt').forEach(function(b){
+    b.classList.toggle('active', b.dataset.role === u.role);
+    b.onclick = function(){
+      u.role = b.dataset.role;
+      saveUsers();
+      document.querySelectorAll('#pfRoles .roleopt').forEach(function(x){
+        x.classList.toggle('active', x === b);
+      });
+      refreshAfterDataChange();
+      toast(u.role === 'teacher' ? 'You are set up as a Teacher 🧑‍🏫' : 'You are set up as a Student 🎓');
+    };
+  });
+}
+function renderSwatches(){
+  $('avatarSwatches').innerHTML = SUBJECT_COLORS.map(function(c){
+    return '<button type="button" class="swatch' + (c === selectedColor ? ' active' : '') +
+      '" style="background:' + c + '" data-color="' + c + '" aria-label="Colour"></button>';
+  }).join('');
+  $('avatarSwatches').querySelectorAll('button').forEach(function(b){
+    b.onclick = function(){
+      selectedColor = b.dataset.color;
+      renderSwatches(); paintEditAvatar();
+    };
+  });
+}
+function paintEditAvatar(){
+  var el = $('editAvatar');
+  el.textContent = initialsOf($('pfName').value || App.user.name);
+  el.style.background = selectedColor;
+}
+function saveProfile(){
+  var u = App.user;
+  var name = $('pfName').value.trim();
+  var email = $('pfEmail').value.trim();
+  if(name.length < 2) return toast('Please enter your full name.', 'bad');
+  if(!isEmail(email)) return toast('That email address looks incomplete.', 'bad');
+  var clash = findUserByEmail(email);
+  if(clash && clash.id !== u.id) return toast('Another account already uses that email.', 'bad');
+
+  u.name = name; u.email = email;
+  u.className = $('pfClass').value.trim();
+  u.color = selectedColor || u.color;
+  saveUsers();
+  refreshAfterDataChange();
+  toast('Profile saved ✓', 'good');
+  go('profile');
+}
+
+/* ---------------- settings ---------------- */
+
+function initSettingsScreen(){
+  var s = App.s;
+  document.querySelectorAll('#themeSeg button').forEach(function(b){
+    b.classList.toggle('active', b.dataset.theme === s.theme);
+    b.onclick = function(){
+      saveSettings({ theme:b.dataset.theme });
+      document.querySelectorAll('#themeSeg button').forEach(function(x){
+        x.classList.toggle('active', x === b);
+      });
+      toast(b.dataset.theme === 'dark' ? 'Dark mode on 🌙' :
+            b.dataset.theme === 'light' ? 'Light mode on ☀' : 'Theme follows your device 🌗');
+    };
+  });
+  document.querySelectorAll('#textSeg button').forEach(function(b){
+    b.classList.toggle('active', Number(b.dataset.scale) === Number(s.scale));
+    b.onclick = function(){ saveSettings({ scale:Number(b.dataset.scale) });
+      document.querySelectorAll('#textSeg button').forEach(function(x){
+        x.classList.toggle('active', x === b);
+      }); };
+  });
+  $('setMotion').checked = !!s.motion;
+  $('setMotion').onchange = function(){ saveSettings({ motion:this.checked }); };
+  $('setAutosave').checked = s.autosave !== false;
+  $('setAutosave').onchange = function(){ saveSettings({ autosave:this.checked });
+    toast(this.checked ? 'Drafts will be kept automatically' : 'Automatic drafts are off'); };
+  $('setCompact').checked = !!s.compact;
+  $('setCompact').onchange = function(){ saveSettings({ compact:this.checked }); refreshAfterDataChange(); };
+
+  var sel = $('setDefaultSubject');
+  sel.innerHTML = '<option value="">Ask me each time</option>' + mySubjects().map(function(sub){
+    return '<option' + (sub.name === s.defaultSubject ? ' selected' : '') + '>' + escapeHtml(sub.name) + '</option>';
+  }).join('');
+  sel.onchange = function(){ saveSettings({ defaultSubject:this.value }); };
+
+  reportStorageUsage();
+}
+
+function reportStorageUsage(){
+  var el = $('storageUsage');
+  if(!el) return;
+  var notes = myNotes().length;
+  var myFiles = App.files.filter(function(f){ return f.ownerId === App.user.id; });
+  var bytes = myFiles.reduce(function(sum, f){ return sum + (f.size || 0); }, 0);
+  el.innerHTML = 'You have <b>' + notes + '</b> notes and <b>' + myFiles.length +
+    '</b> file attachments (<b>' + formatBytes(bytes) + '</b>) stored on this device. ' +
+    'Back up before clearing your browser data.';
+}
+
+function clearMyNotes(){
+  confirmDialog({
+    title:'Delete all my notes?',
+    message:'This removes every note in your list. Files in your archive are not touched.',
+    okText:'Delete all notes'
+  }).then(function(ok){
+    if(!ok) return;
+    userData(App.user.id).notes = [];
+    saveAllData();
+    refreshAfterDataChange();
+    toast('Your notes were cleared.', 'good');
+    go('dashboard');
+  });
+}
+
+function deleteMyAccount(){
+  confirmDialog({
+    title:'Delete my account?',
+    message:'Type DELETE to confirm. Your profile, notes and file records on this device are removed for good.',
+    okText:'Delete account', placeholder:'Type DELETE'
+  }).then(function(answer){
+    if(!answer || String(answer).toUpperCase() !== 'DELETE') return;
+    var id = App.user.id;
+    App.files.filter(function(f){ return f.ownerId === id; }).forEach(function(f){ delBlob(f.id).catch(function(){}); });
+    App.files = App.files.filter(function(f){ return f.ownerId !== id; });
+    App.users = App.users.filter(function(u){ return u.id !== id; });
+    delete App.data[id];
+    saveUsers(); saveAllData(); saveFileMeta();
+    App.session = null; App.user = null; saveSession();
+    App.stack = [];
+    renderKnownAccounts();
+    go('splash');
+    toast('Account deleted. Goodbye 👋');
+  });
+}
+
+/* ---------------- help ---------------- */
+
+var FAQ = [
+  ['Will my notes be lost if I close the app?',
+   'No. Everything is saved on this device as you work — notes in local storage, file attachments in the browser database. Closing the tab or restarting the device keeps them. Clearing browser data is the one thing that removes them, so use Back Up My Data before that.'],
+  ['I forgot my password.',
+   'Tap Forgot password on the login screen, enter your email and the app shows a one-time reset code right there on your screen. Type the code plus a new password and you are back in. Nobody else needs to approve it.'],
+  ['How do I change my password?',
+   'Profile → Change Password. Enter the current password once, then the new one twice. There is a strength guide as you type, and an optional sign-out when it is done.'],
+  ['What is the difference between Student and Teacher?',
+   'Teachers get publish-to-class options first (share a note or file with everyone) and see how many items they have published. Students get the Class Library front and centre, with one-tap Copy to my notes so a lesson becomes theirs. You can switch roles any time in My Profile.'],
+  ['How do I share something with the class?',
+   'Tick “Share with my class library” while saving a note, or on a file’s information card. Anyone on the device can open Class Library, filter by subject and copy it. Untick to unshare.'],
+  ['Which files can I upload?',
+   'PDF, PowerPoint, Word, Excel, images, ZIP and text files up to about 25 MB each. PDFs and images preview inside the app; other types open or download in their own program.'],
+  ['Can I add my own subjects?',
+   'Yes — Subjects → ＋ (top right). Give it a name, icon and colour, and it appears in every subject list, filter and search.'],
+  ['Can I print or move a note out?',
+   'Open a note, tap ⋮ and choose Print / save as PDF, Download as .txt or Download as .html. Whole-app backups work from Profile → Back Up My Data.'],
+  ['Keyboard shortcuts?',
+   'Ctrl+N new note · Ctrl+K search notes · Ctrl+F search files · Esc back · Ctrl+S save the note you are writing.'],
+  ['Does this send anything online?',
+   'No network calls are made. Accounts, notes and files stay in this browser on this device.']
+];
+
+function initHelpScreen(){ renderHelp(); }
+function renderHelp(){
+  var q = ($('helpSearch') ? $('helpSearch').value : '').trim().toLowerCase();
+  var box = $('faqList');
+  var items = FAQ.filter(function(pair){
+    if(!q) return true;
+    return (pair[0] + ' ' + pair[1]).toLowerCase().indexOf(q) !== -1;
+  });
+  if(!items.length){
+    box.innerHTML = '<div class="empty"><b>No help topic matches that.</b>Try “password”, “share” or “upload”.</div>';
+    return;
+  }
+  box.innerHTML = items.map(function(pair, i){
+    return '<div class="qa"><button class="q" data-i="' + i + '"><span>' + escapeHtml(pair[0]) +
+      '</span><b>⌄</b></button><div class="a hidden">' + escapeHtml(pair[1]) + '</div></div>';
+  }).join('');
+  box.querySelectorAll('.q').forEach(function(btn){
+    btn.onclick = function(){
+      var answer = btn.nextElementSibling;
+      answer.classList.toggle('hidden');
+      btn.querySelector('b').textContent = answer.classList.contains('hidden') ? '⌄' : '⌃';
+    };
+  });
+}
+function resetAppHelp(){
+  confirmDialog({
+    title:'Reset the app?',
+    message:'Signs every account out of this device and clears all notes, subjects, settings and files here. Export a backup first if you need one.',
+    okText:'Reset everything', placeholder:'Type RESET'
+  }).then(function(answer){
+    if(!answer || String(answer).toUpperCase() !== 'RESET') return;
+    Object.keys(KEYS).forEach(function(k){ localStorage.removeItem(KEYS[k]); });
+    localStorage.removeItem('na.remember.v1');
+    ['na.draft.v1'].forEach(function(k){ localStorage.removeItem(k); });
+    idbCall('readwrite', function(s){ s.clear(); }).catch(function(){});
+    App = { users:[], data:{}, files:[], session:null, user:null, s:DEFAULT_SETTINGS, screen:'splash', stack:[] };
+    App.stack = []; App.screen = '';
+    renderKnownAccounts();
+    go('splash');
+    toast('The app is back to a clean start.');
+  });
+}
+function sendFeedback(){
+  var subject = encodeURIComponent('NotesArchive feedback — ' + App.user.name);
+  var body = encodeURIComponent('What worked well:\n\nWhat was confusing:\n\n(Your note is saved on this device; nothing is sent automatically.)');
+  window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+  toast('A feedback message is ready in your mail app.');
+}
+
+</script>
+<script>
+/* ===== Embedded notes.js ===== */
+/* ==========================================================================
+   notes.js — subjects, note editor, note list, note view, class library
+   ========================================================================== */
+
+'use strict';
+
+var editingId = null;          /* null = new note */
+var currentNoteId = null;      /* note being viewed */
+var noteFilter = 'All';
+var classFilter = 'All';
+var modalSubjectName = null;   /* subject being edited */
+var modalIcon = SUBJECT_ICONS[0];
+var modalColor = SUBJECT_COLORS[0];
+var autosaveTimer = null;
+
+/* ---------------- subjects ---------------- */
+
+function subjectMeta(name){
+  var found = mySubjects().filter(function(s){
+    return s.name.toLowerCase() === String(name || '').toLowerCase();
+  })[0];
+  return found || { name:name || 'General', icon:'📝', color:SUBJECT_COLORS[0] };
+}
+function subjectCount(name){
+  return myNotes().filter(function(n){
+    return n.subject.toLowerCase() === String(name).toLowerCase();
+  }).length;
+}
+function customSubjectsOf(id){ return userData(id).subjects || []; }
+
+function initSubjectsScreen(){
+  renderSubjects();
+  $('smIcons').innerHTML = SUBJECT_ICONS.map(function(i){
+    return '<button type="button" data-icon="' + i + '">' + i + '</button>';
+  }).join('');
+  $('smIcons').querySelectorAll('button').forEach(function(b){
+    b.onclick = function(){ modalIcon = b.dataset.icon; markIconPick(); };
+  });
+  $('smColors').innerHTML = SUBJECT_COLORS.map(function(c){
+    return '<button type="button" class="swatch" style="background:' + c + '" data-color="' + c + '"></button>';
+  }).join('');
+  $('smColors').querySelectorAll('button').forEach(function(b){
+    b.onclick = function(){ modalColor = b.dataset.color; markColorPick(); };
+  });
+}
+function markIconPick(){
+  $('smIcons').querySelectorAll('button').forEach(function(b){
+    b.classList.toggle('active', b.dataset.icon === modalIcon);
+  });
+}
+function markColorPick(){
+  $('smColors').querySelectorAll('button').forEach(function(b){
+    b.classList.toggle('active', b.dataset.color === modalColor);
+  });
+}
+
+function renderSubjects(){
+  var list = mySubjects();
+  $('subjectGrid').innerHTML = list.map(function(s){
+    var count = subjectCount(s.name);
+    return '<button class="subject" onclick="newNote(\'' + jsArg(s.name) + '\')">' +
+      '<span class="sbar" style="background:' + s.color + '"></span>' +
+      '<div class="subject-icon">' + s.icon + '</div>' +
+      '<b>' + escapeHtml(s.name) + '</b><small>' + count + (count === 1 ? ' note' : ' notes') + '</small></button>';
+  }).join('') +
+    '<button class="subject" onclick="openSubjectModal()">' +
+    '<div class="subject-icon">＋</div><b>New subject</b><small>Add your own</small></button>';
+
+  var customs = customSubjectsOf(App.user.id);
+  $('subjectList').innerHTML = list.map(function(s){
+    var custom = customs.filter(function(c){ return c.name === s.name; })[0];
+    return '<div class="card" style="cursor:default">' +
+      '<div class="tagdot" style="background:' + s.color + '22;color:' + s.color + '">' + s.icon + '</div>' +
+      '<div class="cmain"><b>' + escapeHtml(s.name) + '</b>' +
+      '<p>' + subjectCount(s.name) + (subjectCount(s.name) === 1 ? ' note' : ' notes') +
+      ' · ' + App.files.filter(function(f){
+        return f.ownerId === App.user.id && f.subject === s.name;
+      }).length + ' files</p></div>' +
+      '<div style="display:flex;gap:4px">' +
+      (custom ? '<button class="iconbtn" title="Edit subject" onclick="openSubjectModal(\'' +
+        jsArg(s.name) + '\')">✎</button>' +
+        '<button class="iconbtn" title="Remove subject" onclick="removeSubject(\'' + jsArg(s.name) + '\')">🗑</button>'
+        : '<span class="badge">standard</span>') +
+      '</div></div>';
+  }).join('');
+}
+
+function openSubjectModal(name){
+  modalSubjectName = name || null;
+  var existing = name ? customSubjectsOf(App.user.id).filter(function(s){
+    return s.name === name;
+  })[0] : null;
+  $('smTitle').textContent = name ? 'Edit Subject' : 'New Subject';
+  $('smName').value = name || '';
+  modalIcon = existing ? existing.icon : SUBJECT_ICONS[4];
+  modalColor = existing ? existing.color : SUBJECT_COLORS[1];
+  markIconPick(); markColorPick();
+  show('subjectModal');
+  setTimeout(function(){ $('smName').focus(); }, 80);
+}
+
+function saveSubjectModal(){
+  var name = $('smName').value.trim();
+  if(name.length < 2) return toast('Give the subject a name (2+ letters).', 'bad');
+  var customs = customSubjectsOf(App.user.id);
+  var clash = mySubjects().filter(function(s){
+    return s.name.toLowerCase() === name.toLowerCase();
+  })[0];
+  if(clash && clash.name !== modalSubjectName) return toast('You already have a subject called ' + clash.name + '.', 'bad');
+
+  if(modalSubjectName){
+    var target = customs.filter(function(s){ return s.name === modalSubjectName; })[0];
+    if(target){
+      renameEverywhere(modalSubjectName, name);
+      target.name = name; target.icon = modalIcon; target.color = modalColor;
+    }
+    toast('Subject updated ✓', 'good');
+  }else{
+    customs.push({ name:name, icon:modalIcon, color:modalColor });
+    toast(name + ' added to your subjects ✓', 'good');
+  }
+  saveAllData();
+  hide('subjectModal');
+  refreshSubjectSelects();
+  refreshAfterDataChange();
+}
+
+function removeSubject(name){
+  confirmDialog({
+    title:'Remove ' + name + '?',
+    message:'Your notes for it stay, but they move to General and the subject disappears from your lists.',
+    okText:'Remove subject'
+  }).then(function(ok){
+    if(!ok) return;
+    var d = userData(App.user.id);
+    d.subjects = (d.subjects || []).filter(function(s){ return s.name !== name; });
+    d.notes.forEach(function(n){ if(n.subject === name) n.subject = 'General'; });
+    App.files.forEach(function(f){ if(f.subject === name) f.subject = 'Other'; });
+    saveAllData(); saveFileMeta();
+    if(App.s.defaultSubject === name) saveSettings({ defaultSubject:'' });
+    toast(name + ' removed.');
+    refreshSubjectSelects(); refreshAfterDataChange();
+  });
+}
+
+function renameEverywhere(oldName, newName){
+  myNotes().forEach(function(n){ if(n.subject === oldName) n.subject = newName; });
+  App.files.forEach(function(f){ if(f.ownerId === App.user.id && f.subject === oldName) f.subject = newName; });
+  saveFileMeta();
+}
+
+function refreshSubjectSelects(){
+  var opts = mySubjects().map(function(s){
+    return '<option value="' + escapeHtml(s.name) + '">' + escapeHtml(s.name) + '</option>';
+  }).join('');
+  var def = App.s.defaultSubject;
+  ['noteSubject', 'upSubject'].forEach(function(id){
+    var el = $(id);
+    if(!el) return;
+    var keep = el.value;
+    el.innerHTML = opts;
+    if(keep && el.querySelector('option[value="' + keep + '"]')) el.value = keep;
+    else if(def && el.querySelector('option[value="' + def + '"]')) el.value = def;
+  });
+  var ff = $('fileSubjectFilter');
+  if(ff){
+    var keepVal = ff.value;
+    ff.innerHTML = '<option value="All">All subjects</option>' + opts + '<option value="Other">Other / General</option>';
+    if(keepVal) ff.value = keepVal;
+  }
+  var sd = $('setDefaultSubject');
+  if(sd) initSettingsScreen();
+}
+
+function jsArg(s){
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+/* ---------------- editor ---------------- */
+
+function initEditorBindings(){
+  document.querySelectorAll('.toolbar button').forEach(function(b){
+    b.onmousedown = function(e){ e.preventDefault(); };   /* keep selection in the surface */
+    b.onclick = function(){ runCommand(b.dataset.cmd); };
+  });
+  var body = $('noteBody');
+  body.addEventListener('input', onEditorInput);
+  body.addEventListener('paste', function(e){
+    var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    if(text){ e.preventDefault(); document.execCommand('insertText', false, text); }
+  });
+  body.addEventListener('keydown', function(e){
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); saveNote(); }
+  });
+  $('noteTitle').addEventListener('input', onEditorInput);
+  $('noteSubject').addEventListener('change', onEditorInput);
+}
+
+function runCommand(cmd){
+  var body = $('noteBody');
+  body.focus();
+  /* spans are needed for colour, semantic tags read better everywhere else */
+  document.execCommand('styleWithCSS', false, cmd === 'hiliteColor');
+  if(cmd === 'hiliteColor'){
+    document.execCommand('hiliteColor', false, '#fff3b0');
+  }else if(cmd.indexOf('formatBlock:') === 0){
+    document.execCommand('formatBlock', false, '<' + cmd.split(':')[1] + '>');
+  }else if(cmd === 'createLink'){
+    var sel = window.getSelection().toString();
+    var url = prompt('Link address (https://…)' + (sel ? ' for “' + sel + '”' : ''));
+    if(url){
+      if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      document.execCommand('createLink', false, url);
+    }
+  }else{
+    document.execCommand(cmd, false, null);
+  }
+  onEditorInput();
+}
+
+function onEditorInput(){
+  var body = $('noteBody');
+  var words = stripHtml(body.innerHTML).split(/\s+/).filter(Boolean).length;
+  $('wordCount').textContent = words + (words === 1 ? ' word' : ' words');
+  $('saveState').textContent = 'Editing…';
+  clearTimeout(autosaveTimer);
+  if(App.s.autosave === false) return;
+  autosaveTimer = setTimeout(keepDraft, 900);
+}
+
+function draftKey(){ return 'na.draft.v1'; }
+function keepDraft(){
+  var payload = lsGet(draftKey(), {});
+  payload[editingId || 'new'] = {
+    subject:$('noteSubject').value, title:$('noteTitle').value,
+    body:$('noteBody').innerHTML, share:$('noteShare').checked, at:Date.now()
+  };
+  lsSet(draftKey(), payload);
+  $('saveState').textContent = 'Draft kept · ' + formatDateTime(Date.now()).split('·')[1].trim();
+}
+function readDraft(id){ return lsGet(draftKey(), {})[id || 'new'] || null; }
+function clearDraft(id){
+  var payload = lsGet(draftKey(), {});
+  delete payload[id || 'new'];
+  lsSet(draftKey(), payload);
+}
+
+function newNote(subject){
+  editingId = null;
+  var sub = subject || App.s.defaultSubject || mySubjects()[0].name;
+  openEditorScreen({ subject:sub, title:'', body:'', share:false }, 'New Note');
+  var draft = readDraft('new');
+  if(draft && (draft.title || stripHtml(draft.body))){
+    confirmDialog({
+      title:'Continue your unsaved note?',
+      message:'You have a draft from ' + timeAgo(draft.at) + '. Open it or start fresh?',
+      okText:'Open my draft', danger:false
+    }).then(function(ok){
+      if(ok) fillEditor(draft);
+      else clearDraft('new');
+    });
+  }
+}
+
+function openEditor(note){
+  editingId = note.id;
+  openEditorScreen({
+    subject:note.subject, title:note.title, body:note.content, share:!!note.shared
+  }, 'Edit Note');
+}
+
+function openEditorScreen(data, heading){
+  $('editorTitle').textContent = heading;
+  $('noteShareLabel').textContent = isTeacher()
+    ? 'Share with my class library (students can copy it)'
+    : 'Share with my class library';
+  $('noteShare').checked = !!data.share;
+  refreshSubjectSelects();
+  fillEditor(data);
+  go('editor');
+  setTimeout(function(){ $('noteTitle').focus(); }, 250);
+}
+function fillEditor(data){
+  $('noteSubject').value = data.subject;
+  $('noteTitle').value = data.title;
+  $('noteBody').innerHTML = data.body || '';
+  $('noteShare').checked = !!data.share;
+  var words = stripHtml(data.body || '').split(/\s+/).filter(Boolean).length;
+  $('wordCount').textContent = words + (words === 1 ? ' word' : ' words');
+  $('saveState').textContent = 'Draft kept automatically';
+}
+
+function closeEditor(){
+  var dirty = ($('noteTitle').value.trim() || stripHtml($('noteBody').innerHTML)) &&
+    !editingId;
+  if(dirty && App.s.autosave !== false){ toast('Draft saved on this device.'); }
+  goBackFromEditor();
+}
+function goBackFromEditor(){
+  if(editingId) go('view'); else go('notes');
+}
+function discardNote(){
+  var hasContent = $('noteTitle').value.trim() || stripHtml($('noteBody').innerHTML);
+  if(!hasContent){ goBackFromEditor(); return; }
+  confirmDialog({
+    title:'Discard this note?', message:'Anything you typed will be removed.', okText:'Discard'
+  }).then(function(ok){
+    if(!ok) return;
+    clearDraft(editingId);
+    goBackFromEditor();
+  });
+}
+
+function saveNote(){
+  var title = $('noteTitle').value.trim();
+  var body = $('noteBody').innerHTML;
+  var subject = $('noteSubject').value || 'General';
+  if(!title) return toast('Add a title so you can find this note later.', 'bad');
+  if(!stripHtml(body)) return toast('Your note is empty — add some content.', 'bad');
+
+  var notes = myNotes();
+  var meta = subjectMeta(subject);
+  var now = Date.now();
+  var shared = $('noteShare').checked;
+
+  if(editingId){
+    var note = notes.filter(function(n){ return n.id === editingId; })[0];
+    if(!note){ toast('That note no longer exists.', 'bad'); go('notes'); return; }
+    note.title = title; note.subject = subject; note.content = body;
+    note.icon = meta.icon; note.updatedAt = now; note.shared = shared;
+    toast('Note updated ✓', 'good');
+  }else{
+    var created = {
+      id:uid(), title:title, subject:subject, icon:meta.icon, content:body,
+      pinned:false, shared:shared, createdAt:now, updatedAt:now
+    };
+    notes.unshift(created);
+    currentNoteId = created.id;
+    toast(shared ? 'Saved and shared with your class ✓' : 'Note saved ✓', 'good');
+  }
+  saveAllData();
+  clearDraft(editingId);
+  editingId = null;
+  var dest = currentNoteId;
+  refreshAfterDataChange();
+  go('view');
+  if(dest) viewNoteById(dest);
+}
+
+/* ---------------- notes list ---------------- */
+
+function initNotesScreen(){
+  noteFilter = noteFilter || 'All';
+  $('noteSearch').addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ this.value = ''; renderNotes(); }
+  });
+  renderNotes();
+}
+
+function renderNoteChips(){
+  var subjects = mySubjects().map(function(s){ return s.name; });
+  var chips = ['All'].concat(subjects).concat(['★ Pinned']);
+  $('noteChips').innerHTML = chips.map(function(name){
+    return '<button class="chip' + (name === noteFilter ? ' active' : '') + '" data-chip="' +
+      escapeHtml(name) + '">' + (name === '★ Pinned' ? '★ Favourites' : escapeHtml(name)) + '</button>';
+  }).join('');
+  $('noteChips').querySelectorAll('.chip').forEach(function(b){
+    b.onclick = function(){ noteFilter = b.dataset.chip; renderNotes(); };
+  });
+}
+
+function renderNotes(){
+  if(!App.user) return;
+  renderNoteChips();
+  var q = ($('noteSearch') ? $('noteSearch').value : '').trim().toLowerCase();
+  var sort = $('noteSort') ? $('noteSort').value : 'new';
+  var notes = myNotes().slice();
+
+  var filtered = notes.filter(function(n){
+    if(noteFilter === '★ Pinned' && !n.pinned && !n.shared) return false;
+    if(noteFilter !== 'All' && noteFilter !== '★ Pinned' &&
+       n.subject.toLowerCase() !== noteFilter.toLowerCase()) return false;
+    if(!q) return true;
+    return (n.title + ' ' + n.subject + ' ' + stripHtml(n.content)).toLowerCase().indexOf(q) !== -1;
+  });
+
+  filtered.sort(function(a, b){
+    if(sort === 'az') return a.title.localeCompare(b.title);
+    if(sort === 'old') return a.updatedAt - b.updatedAt;
+    if(sort === 'pinned') return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.updatedAt - a.updatedAt;
+    return b.updatedAt - a.updatedAt;
+  });
+
+  $('noteCount').textContent = filtered.length + ' of ' + notes.length + (notes.length === 1 ? ' note' : ' notes');
+
+  var list = $('notesList');
+  if(!filtered.length){
+    list.innerHTML = notes.length
+      ? '<div class="empty"><b>Nothing matches that search.</b>Try another word, or clear the subject filter.</div>'
+      : '<div class="empty"><b>No notes yet.</b>Tap ＋ and write your first one — it saves as you type.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(function(n){
+    var meta = subjectMeta(n.subject);
+    return '<button class="card" onclick="viewNoteById(\'' + jsArg(n.id) + '\')">' +
+      '<div class="tagdot" style="background:' + meta.color + '22;color:' + meta.color + '">' + meta.icon + '</div>' +
+      '<div class="cmain"><b>' + escapeHtml(n.title) + '</b><p>' +
+        escapeHtml(stripHtml(n.content).slice(0, 150)) + '</p>' +
+      '<div class="cmeta"><span>' + escapeHtml(n.subject) + '</span><span>·</span><span>' +
+        timeAgo(n.updatedAt) + '</span>' +
+        (n.pinned ? '<span class="badge pin">★ pinned</span>' : '') +
+        (n.shared ? '<span class="badge shared">⇪ shared</span>' : '') +
+      '</div></div><span class="chev">›</span></button>';
+  }).join('');
+}
+
+/* ---------------- view note ---------------- */
+
+function viewNoteById(id){
+  var note = myNotes().filter(function(n){ return n.id === id; })[0];
+  if(!note){ toast('That note is gone.', 'bad'); go('notes'); return; }
+  currentNoteId = id;
+  var meta = subjectMeta(note.subject);
+  $('viewMeta').innerHTML = escapeHtml(note.subject) + ' · updated ' + formatDateTime(note.updatedAt) +
+    ' · created ' + formatDate(note.createdAt) + (note.shared ? ' · <b>shared with class</b>' : '');
+  $('viewTitle').textContent = note.title;
+  $('viewContent').innerHTML = note.content;
+  $('pinBtn').textContent = note.pinned ? '★' : '☆';
+  $('shareBtn').style.color = note.shared ? 'var(--ok)' : '';
+  setViewMode(null);
+  go('view');
+}
+
+function currentNote(){
+  return myNotes().filter(function(n){ return n.id === currentNoteId; })[0] || null;
+}
+function editCurrent(){
+  var note = currentNote();
+  if(note) openEditor(note);
+}
+function togglePin(){
+  var note = currentNote();
+  if(!note) return;
+  note.pinned = !note.pinned;
+  saveAllData();
+  $('pinBtn').textContent = note.pinned ? '★' : '☆';
+  toast(note.pinned ? 'Pinned to your favourites ★' : 'Removed from favourites');
+  refreshAfterDataChange();
+}
+function shareCurrentNote(){
+  var note = currentNote();
+  if(!note) return;
+  note.shared = !note.shared;
+  saveAllData();
+  $('shareBtn').style.color = note.shared ? 'var(--ok)' : '';
+  toast(note.shared ? 'Shared with the Class Library ✓' : 'Unshared from the class', 'good');
+  refreshAfterDataChange();
+}
+function noteMenu(){ show('noteMenuModal');
+  var note = currentNote();
+  $('mnShareLabel').textContent = note && note.shared ? '⇪ Unshare from class' : '⇪ Share with class';
+}
+function menuGo(where){
+  hide('noteMenuModal');
+  if(where === 'edit') return editCurrent();
+  if(where === 'delete') return deleteCurrent();
+}
+function menuToggleShare(){ hide('noteMenuModal'); shareCurrentNote(); }
+
+function duplicateCurrent(){
+  var note = currentNote();
+  if(!note) return;
+  hide('noteMenuModal');
+  var copy = Object.assign({}, note, {
+    id:uid(), title:note.title + ' (copy)', shared:false, pinned:false,
+    createdAt:Date.now(), updatedAt:Date.now()
+  });
+  myNotes().unshift(copy);
+  saveAllData();
+  currentNoteId = copy.id;
+  toast('Copy created ✓', 'good');
+  viewNoteById(copy.id);
+  refreshAfterDataChange();
+}
+function copyCurrent(){
+  var note = currentNote();
+  if(!note) return;
+  var text = note.title + '\n\n' + stripHtml(note.content);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ toast('Note copied — paste it anywhere ✓', 'good'); },
+      function(){ legacyCopy(text); });
+  }else legacyCopy(text);
+}
+function legacyCopy(text){
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-999px';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('Note copied ✓', 'good'); }
+  catch(e){ toast('Select the text and copy it manually.', 'bad'); }
+  ta.remove();
+}
+function exportCurrentNote(kind){
+  var note = currentNote();
+  if(!note) return;
+  hide('noteMenuModal');
+  var safe = note.title.replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-') || 'note';
+  if(kind === 'txt'){
+    saveText(safe + '.txt', note.title + '\n' + note.subject + ' · ' + formatDate(note.updatedAt) +
+      '\n\n' + stripHtml(note.content));
+  }else{
+    saveText(safe + '.html',
+      '<!doctype html><meta charset="utf-8"><title>' + escapeHtml(note.title) + '</title>' +
+      '<style>body{font-family:system-ui;max-width:720px;margin:40px auto;line-height:1.7}</style>' +
+      '<h1>' + escapeHtml(note.title) + '</h1><p><small>' + escapeHtml(note.subject) + ' · ' +
+      formatDate(note.updatedAt) + '</small></p><hr>' + note.content, 'text/html');
+  }
+  toast('Downloaded ✓');
+}
+function printCurrent(){
+  var note = currentNote();
+  if(!note) return;
+  hide('noteMenuModal');
+  var frame = document.createElement('iframe');
+  frame.style.position = 'fixed'; frame.style.right = '0'; frame.style.bottom = '0';
+  frame.style.width = '0'; frame.style.height = '0'; frame.style.border = '0';
+  document.body.appendChild(frame);
+  var doc = frame.contentDocument;
+  doc.open();
+  doc.write('<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml(note.title) +
+    '</title><style>body{font-family:system-ui;padding:32px;line-height:1.7}h1{margin:0 0 4px}' +
+    'small{color:#666}img{max-width:100%}</style></head><body><h1>' + escapeHtml(note.title) +
+    '</h1><small>' + escapeHtml(note.subject) + ' · ' + formatDate(note.updatedAt) +
+    ' · ' + escapeHtml(App.user.name) + '</small><hr>' + note.content + '</body></html>');
+  doc.close();
+  frame.contentWindow.focus();
+  setTimeout(function(){
+    frame.contentWindow.print();
+    setTimeout(function(){ frame.remove(); }, 1000);
+  }, 350);
+}
+function deleteCurrent(){
+  var note = currentNote();
+  if(!note) return;
+  hide('noteMenuModal');
+  confirmDialog({
+    title:'Delete “' + note.title + '”?',
+    message:'This note disappears from your list' + (note.shared ? ' and from the Class Library' : '') + '.',
+    okText:'Delete note'
+  }).then(function(ok){
+    if(!ok) return;
+    var d = userData(App.user.id);
+    d.notes = d.notes.filter(function(n){ return n.id !== note.id; });
+    saveAllData();
+    clearDraft(note.id);
+    toast('Note deleted.');
+    currentNoteId = null;
+    refreshAfterDataChange();
+    go('notes');
+  });
+}
+
+/* ---------------- class library ---------------- */
+
+function initClassScreen(){
+  $('classSubtitle').textContent = isTeacher()
+    ? 'Everything you publish here appears for your students on this device.'
+    : 'Notes and materials your teachers published for this class.';
+  renderClass();
+}
+
+function renderClass(){
+  var notes = classNotes();
+  var files = classFiles();
+  var subjects = {};
+  notes.concat(files.map(function(f){ return { subject:f.subject }; })).forEach(function(i){
+    if(i.subject) subjects[i.subject] = true;
+  });
+  var chips = ['All'].concat(Object.keys(subjects).sort());
+  $('classChips').innerHTML = chips.map(function(name){
+    return '<button class="chip' + (name === classFilter ? ' active' : '') + '" data-chip="' +
+      escapeHtml(name) + '">' + escapeHtml(name) + '</button>';
+  }).join('');
+  $('classChips').querySelectorAll('.chip').forEach(function(b){
+    b.onclick = function(){ classFilter = b.dataset.chip; renderClass(); };
+  });
+
+  var keep = function(subject){
+    return classFilter === 'All' || String(subject).toLowerCase() === classFilter.toLowerCase();
+  };
+  var visibleNotes = notes.filter(function(n){ return keep(n.subject); });
+  var visibleFiles = files.filter(function(f){ return keep(f.subject); });
+
+  var box = $('classList');
+  if(!visibleNotes.length && !visibleFiles.length){
+    box.innerHTML = '<div class="empty"><b>Nothing shared yet.</b>' +
+      (isTeacher()
+        ? 'Tick “Share with my class library” on any note or file and it shows up here instantly.'
+        : 'When your teacher shares a note or file, it will appear here. Check back after class.') +
+      '</div>';
+    return;
+  }
+
+  var rows = visibleNotes.map(function(n){
+    var meta = subjectMeta(n.subject);
+    var mine = n.ownerId === App.user.id;
+    return '<div class="card" style="cursor:default">' +
+      '<div class="tagdot" style="background:' + meta.color + '22;color:' + meta.color + '">' + meta.icon + '</div>' +
+      '<div class="cmain"><b>' + escapeHtml(n.title) + '</b>' +
+      '<p>' + escapeHtml(stripHtml(n.content).slice(0, 140)) + '</p>' +
+      '<div class="cmeta"><span class="badge ' + (n.ownerRole === 'teacher' ? 'teacher' : 'student') + '">' +
+      (n.ownerRole === 'teacher' ? '🧑‍🏫' : '🎓') + ' ' + escapeHtml(n.ownerName) + '</span>' +
+      '<span>' + escapeHtml(n.subject) + '</span><span>·</span><span>' + timeAgo(n.updatedAt) + '</span></div></div>' +
+      '<div style="display:flex;flex-direction:column;gap:5px">' +
+      '<button class="iconbtn" title="Open" onclick="openSharedNote(\'' + jsArg(n.ownerId) + '\',\'' + jsArg(n.id) + '\')">👁</button>' +
+      (mine
+        ? '<button class="iconbtn" title="Unshare" onclick="unshareNote(\'' + jsArg(n.id) + '\')">⇪</button>'
+        : '<button class="iconbtn" title="Copy to my notes" onclick="copySharedNote(\'' + jsArg(n.ownerId) + '\',\'' + jsArg(n.id) + '\')">＋</button>') +
+      '</div></div>';
+  }).join('');
+
+  var fileRows = visibleFiles.map(function(f){
+    return '<button class="fcard" onclick="openFileById(\'' + jsArg(f.id) + '\')">' +
+      fileIconBox(f) +
+      '<div class="fmain"><b>' + escapeHtml(f.name) + '</b>' +
+      '<small>' + escapeHtml(f.ownerName || '') + ' · ' + escapeHtml(f.subject) + ' · ' +
+      formatBytes(f.size) + ' · ' + timeAgo(f.createdAt) + '</small></div>' +
+      '<span class="chev">›</span></button>';
+  }).join('');
+
+  box.innerHTML = rows + fileRows;
+}
+
+function openSharedNote(ownerId, noteId){
+  var note = (userData(ownerId).notes || []).filter(function(n){ return n.id === noteId; })[0];
+  if(!note) return toast('That note is no longer available.', 'bad');
+  if(ownerId === App.user.id) return viewNoteById(noteId);
+  currentNoteId = null;
+  var owner = ownerOf(ownerId);
+  $('viewMeta').innerHTML = escapeHtml(note.subject) + ' · shared by ' +
+    escapeHtml(owner ? owner.name : 'a classmate') + ' · ' + formatDateTime(note.updatedAt);
+  $('viewTitle').textContent = note.title;
+  $('viewContent').innerHTML = note.content;
+  setViewMode(Object.assign({}, note, { ownerId:ownerId }));
+  go('view');
+}
+function copySharedNote(ownerId, noteId){
+  var note = (userData(ownerId).notes || []).filter(function(n){ return n.id === noteId; })[0];
+  if(!note) return toast('That note is no longer available.', 'bad');
+  var copy = Object.assign({}, note, {
+    id:uid(), shared:false, pinned:false, copiedFrom:ownerId,
+    title:note.title, createdAt:Date.now(), updatedAt:Date.now()
+  });
+  myNotes().unshift(copy);
+  saveAllData();
+  toast('Copied to your notes ✓', 'good');
+  refreshAfterDataChange();
+}
+function unshareNote(noteId){
+  var note = myNotes().filter(function(n){ return n.id === noteId; })[0];
+  if(!note) return;
+  note.shared = false;
+  saveAllData();
+  toast('Removed from the Class Library');
+  renderClass();
+  refreshAfterDataChange();
+}
+
+</script>
+<script>
+/* ===== Embedded files(1).js ===== */
+/* ==========================================================================
+   files.js — school file archive: upload, list, preview, download, delete
+   ========================================================================== */
+
+'use strict';
+
+var pendingUploads = [];
+var selectedFileId = null;
+var selectedFileBlob = null;
+var selectedFileUrl = null;
+var typeFilter = 'All';
+
+var KIND_OF_EXT = {
+  pdf:'Document', doc:'Document', docx:'Document', odt:'Document', rtf:'Document', pages:'Document',
+  ppt:'Slides', pptx:'Slides', key:'Slides', odp:'Slides',
+  xls:'Spreadsheet', xlsx:'Spreadsheet', csv:'Spreadsheet', ods:'Spreadsheet', numbers:'Spreadsheet',
+  png:'Image', jpg:'Image', jpeg:'Image', gif:'Image', webp:'Image', bmp:'Image', svg:'Image', heic:'Image',
+  zip:'Archive', rar:'Archive', '7z':'Archive', tar:'Archive', gz:'Archive',
+  txt:'Text', md:'Text', json:'Text', log:'Text'
+};
+var KIND_COLORS = {
+  Document:'#e0483e', Slides:'#e5732f', Spreadsheet:'#178f5a', Image:'#6557ee',
+  Archive:'#7b6a55', Text:'#2f6fed', Other:'#64748b'
+};
+
+function extOf(name){
+  var parts = String(name || '').split('.');
+  return parts.length > 1 ? parts.pop().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+}
+function kindOf(name){ return KIND_OF_EXT[extOf(name)] || 'Other'; }
+function canPreview(name){
+  var kind = kindOf(name);
+  return kind === 'Image' || kind === 'Text' || extOf(name) === 'pdf';
+}
+function fileIconBox(f){
+  var color = KIND_COLORS[f.category] || KIND_COLORS.Other;
+  return '<div class="ficon" style="background:' + color + '">' +
+    escapeHtml((f.ext || extOf(f.name) || 'FILE').toUpperCase().slice(0, 4)) + '</div>';
+}
+
+/* ---------------- picking ---------------- */
+
+function pickFiles(){ $('fileInput').click(); }
+
+function handleFilesPicked(event){
+  var picked = Array.prototype.slice.call(event.target.files || []);
+  event.target.value = '';
+  if(!picked.length) return;
+
+  var MAX = 25 * 1024 * 1024;
+  var tooBig = picked.filter(function(f){ return f.size > MAX; });
+  if(tooBig.length) toast('Skipped (over 25 MB): ' + tooBig.map(function(f){ return f.name; }).join(', '), 'bad');
+  pendingUploads = picked.filter(function(f){ return f.size <= MAX; });
+  if(!pendingUploads.length) return;
+
+  var first = pendingUploads[0];
+  $('pickedSummary').innerHTML = pendingUploads.length === 1
+    ? '<b>' + escapeHtml(first.name) + '</b><br>' + formatBytes(first.size) + ' · ' + kindOf(first.name) +
+      ' · ready to file away'
+    : '<b>' + pendingUploads.length + ' files selected</b><br>' +
+      pendingUploads.map(function(f){ return escapeHtml(f.name) + ' (' + formatBytes(f.size) + ')'; }).join('<br>');
+
+  var guess = guessSubjectFromName(first.name);
+  $('upName').value = pendingUploads.length === 1
+    ? first.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim()
+    : '';
+  $('upSubject').value = guess || $('upSubject').value;
+  $('upKind').value = '';
+  $('upNote').value = '';
+  $('upShare').checked = isTeacher();
+  $('upShareLabel').textContent = isTeacher()
+    ? 'Share these files with the class library'
+    : 'Share this file with the class library';
+  $('upProgress').classList.add('hidden');
+  $('upProgress').firstChild.style.width = '0%';
+
+  go('uploading');
+  setTimeout(function(){ $('upName').focus(); }, 250);
+}
+
+function guessSubjectFromName(name){
+  var lower = String(name).toLowerCase();
+  var hits = mySubjects().filter(function(s){
+    return lower.indexOf(s.name.toLowerCase()) !== -1;
+  });
+  if(hits.length) return hits[0].name;
+  var map = { Mathematics:['math','algebra','geometry','calculus','trig'],
+              Science:['science','biology','chemistry','physics'],
+              English:['english','essay','grammar','reading'],
+              ICT:['ict','computer','coding','python','excel'] };
+  var out = mySubjects().filter(function(s){
+    var keys = map[s.name] || [];
+    return keys.some(function(k){ return lower.indexOf(k) !== -1; });
+  });
+  return out.length ? out[0].name : '';
+}
+
+function cancelUpload(){
+  pendingUploads = [];
+  $('upProgress').classList.add('hidden');
+  go('files');
+}
+
+function confirmUpload(){
+  if(!pendingUploads.length) return go('files');
+  var baseName = $('upName').value.trim();
+  if(!baseName) return toast('Type a file name so you can find it later.', 'bad');
+  var subject = $('upSubject').value || 'Other';
+  var kindChoice = $('upKind').value;
+  var note = $('upNote').value.trim();
+  var share = $('upShare').checked;
+
+  var bar = $('upProgress');
+  bar.classList.remove('hidden');
+  var index = 0;
+
+  var step = function(){
+    if(index >= pendingUploads.length) return finish();
+    var file = pendingUploads[index];
+    var id = uid();
+    var meta = {
+      id:id, ownerId:App.user.id,
+      name: pendingUploads.length === 1 ? baseName + '.' + (extOf(file.name) || 'dat')
+        : baseName + ' (' + (index + 1) + ').' + (extOf(file.name) || 'dat'),
+      size:file.size, type:file.type || '', ext:extOf(file.name),
+      category: kindChoice || kindOf(file.name), subject:subject, note:note,
+      shared:share, createdAt:Date.now()
+    };
+    putBlob(id, file).then(function(){
+      App.files.unshift(meta);
+      saveFileMeta();
+      index++;
+      bar.firstChild.style.width = Math.round(index / pendingUploads.length * 100) + '%';
+      step();
+    }).catch(function(err){
+      toast('Could not store ' + meta.name + ' — ' + (err.message || 'device storage full'), 'bad');
+      index++;
+      step();
+    });
+  };
+
+  var finish = function(){
+    pendingUploads = [];
+    refreshAfterDataChange();
+    toast('File' + (App.files.length > 1 ? 's' : '') + ' added to your archive ✓', 'good');
+    go('files');
+    renderFiles();
+    if(share) renderClass();
+  };
+  step();
+}
+
+/* ---------------- listing ---------------- */
+
+function initFilesScreen(){
+  if(!$('fileSubjectFilter').options.length) refreshSubjectSelects();
+  $('fileSearch').addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ this.value = ''; renderFiles(); }
+  });
+  renderFileTypeChips();
+  renderFiles();
+}
+
+function renderFileTypeChips(){
+  var kinds = ['All', 'Document', 'Slides', 'Spreadsheet', 'Image', 'Archive', 'Text'];
+  $('fileTypeChips').innerHTML = kinds.map(function(k){
+    return '<button class="chip' + (k === typeFilter ? ' active' : '') + '" data-kind="' + k + '">' +
+      (k === 'All' ? 'All types' : k + 's') + '</button>';
+  }).join('');
+  $('fileTypeChips').querySelectorAll('.chip').forEach(function(b){
+    b.onclick = function(){ typeFilter = b.dataset.kind; renderFileTypeChips(); renderFiles(); };
+  });
+}
+
+function myFiles(){ return App.files.filter(function(f){ return f.ownerId === App.user.id; }); }
+
+function renderFiles(){
+  if(!App.user) return;
+  renderFileTypeChips();
+  var q = ($('fileSearch') ? $('fileSearch').value : '').trim().toLowerCase();
+  var subject = $('fileSubjectFilter') ? $('fileSubjectFilter').value : 'All';
+  var sharedOnly = $('onlyShared') ? $('onlyShared').checked : false;
+
+  var all = myFiles();
+  var list = all.filter(function(f){
+    if(subject !== 'All' && f.subject !== subject) return false;
+    if(typeFilter !== 'All' && f.category !== typeFilter) return false;
+    if(sharedOnly && !f.shared) return false;
+    if(!q) return true;
+    return (f.name + ' ' + f.subject + ' ' + (f.note || '') + ' ' + f.category).toLowerCase().indexOf(q) !== -1;
+  });
+
+  $('archiveCount').textContent = all.length + (all.length === 1 ? ' file' : ' files');
+  if($('dashFileCount')) updateDashboardFileCount();
+
+  var box = $('fileList');
+  if(!all.length){
+    box.innerHTML = '<div class="empty"><b>Your archive is empty.</b>Upload a PDF, slides or photo and it ' +
+      'is stored on this device — ready when you need it.</div>';
+    return;
+  }
+  if(!list.length){
+    box.innerHTML = '<div class="empty"><b>No files match those filters.</b>Clear the search or choose ' +
+      'All subjects.</div>';
+    return;
+  }
+
+  box.innerHTML = list.map(function(f){
+    return '<div class="fcard" style="cursor:default">' + fileIconBox(f) +
+      '<div class="fmain"><b>' + escapeHtml(f.name) + '</b>' +
+      '<small>' + escapeHtml(f.subject) + ' · ' + formatBytes(f.size) + ' · ' + formatDate(f.createdAt) + '</small>' +
+      '<div class="cmeta" style="margin-top:5px">' +
+        (f.shared ? '<span class="badge shared">⇪ shared with class</span>' : '') +
+        (f.note ? '<span class="badge">📌 note</span>' : '') +
+        '<span>' + escapeHtml(f.category) + '</span></div></div>' +
+      '<div style="display:flex;gap:4px">' +
+        '<button class="iconbtn" title="Preview / open" onclick="previewFileById(\'' + jsArg(f.id) + '\')">👁</button>' +
+        '<button class="iconbtn" title="Download" onclick="downloadFileById(\'' + jsArg(f.id) + '\')">⬇</button>' +
+        '<button class="iconbtn" title="Details" onclick="openFileById(\'' + jsArg(f.id) + '\')">ℹ</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function updateDashboardFileCount(){
+  var el = $('dashFileCount');
+  if(!el) return;
+  var mine = myFiles();
+  var shared = mine.filter(function(f){ return f.shared; }).length;
+  var bytes = mine.reduce(function(sum, f){ return sum + (f.size || 0); }, 0);
+  el.textContent = mine.length
+    ? mine.length + (mine.length === 1 ? ' file' : ' files') + ' · ' + formatBytes(bytes) +
+      (shared ? ' · ' + shared + ' shared' : '')
+    : 'No files yet — add your first one';
+}
+
+/* ---------------- preview / open ---------------- */
+
+function releaseUrl(){
+  if(selectedFileUrl){ URL.revokeObjectURL(selectedFileUrl); selectedFileUrl = null; }
+}
+
+function previewFileById(id){
+  var file = App.files.filter(function(f){ return f.id === id; })[0];
+  if(!file) return toast('That file is no longer stored here.', 'bad');
+  if(!canPreview(file.name)){
+    openFileById(id);
+    toast('No inline preview for ' + (file.ext || 'this') + ' files — use Download to open it.', '');
+    return;
+  }
+  getBlob(id).then(function(blob){
+    if(!blob) return toast('The file bytes are missing — try downloading a backup copy.', 'bad');
+    selectedFileId = id; selectedFileBlob = blob;
+    releaseUrl();
+    selectedFileUrl = URL.createObjectURL(blob);
+    if(kindOf(file.name) === 'Image'){
+      $('lightboxImg').src = selectedFileUrl;
+      show('lightbox');
+    }else if(extOf(file.name) === 'pdf'){
+      show('fileModal');
+      $('filePreview').innerHTML = '<iframe src="' + selectedFileUrl + '" title="PDF preview"></iframe>';
+      $('filePreview').classList.remove('hidden');
+      fillFileModal(file);
+    }else{
+      var reader = new FileReader();
+      reader.onload = function(){
+        show('fileModal');
+        $('filePreview').innerHTML = '<pre>' + escapeHtml(String(reader.result).slice(0, 20000)) + '</pre>';
+        $('filePreview').classList.remove('hidden');
+        fillFileModal(file);
+      };
+      reader.readAsText(blob.slice(0, 200000));
+    }
+  }).catch(function(err){ toast('Could not open the preview: ' + err.message, 'bad'); });
+}
+
+function openFileById(id){
+  var file = App.files.filter(function(f){ return f.id === id; })[0];
+  if(!file) return toast('That file is no longer stored here.', 'bad');
+  selectedFileId = id;
+  $('filePreview').innerHTML = '';
+  $('filePreview').classList.add('hidden');
+  fillFileModal(file);
+  show('fileModal');
+}
+
+function fillFileModal(file){
+  var color = KIND_COLORS[file.category] || KIND_COLORS.Other;
+  $('fileDetailIcon').textContent = (file.ext || 'FILE').toUpperCase().slice(0, 4);
+  $('fileDetailIcon').style.background = color;
+  $('fileDetailName').textContent = file.name;
+  var owner = ownerOf(file.ownerId);
+  $('fileDetailInfo').innerHTML =
+    escapeHtml(file.subject) + ' · ' + file.category + ' · ' + formatBytes(file.size) + '<br>' +
+    'Added ' + formatDateTime(file.createdAt) +
+    (owner ? ' by ' + escapeHtml(owner.name) + (owner.role === 'teacher' ? ' 🧑‍🏫' : ' 🎓') : '');
+  $('fdShare').checked = !!file.shared;
+  $('fdShare').disabled = file.ownerId !== App.user.id;
+  if(file.note){ show('fdNoteWrap'); $('fdNote').textContent = file.note; }
+  else hide('fdNoteWrap');
+}
+
+function closeFileModal(){
+  hide('fileModal');
+  releaseUrl();
+  selectedFileId = null; selectedFileBlob = null;
+  $('filePreview').innerHTML = '';
+}
+
+function toggleFileShare(){
+  var file = App.files.filter(function(f){ return f.id === selectedFileId; })[0];
+  if(!file) return;
+  if(file.ownerId !== App.user.id) return toast('Only the person who uploaded it can change sharing.', 'bad');
+  file.shared = $('fdShare').checked;
+  saveFileMeta();
+  toast(file.shared ? 'Shared with the Class Library ✓' : 'Removed from the class library', 'good');
+  renderFiles();
+  renderClass();
+  refreshAfterDataChange();
+}
+
+function previewSelected(){
+  if(!selectedFileId) return;
+  var file = App.files.filter(function(f){ return f.id === selectedFileId; })[0];
+  if(!file) return;
+  if(!selectedFileUrl) return previewFileById(selectedFileId);
+  if(kindOf(file.name) === 'Image'){ show('lightbox'); return; }
+  var frame = document.createElement('iframe');
+  frame.setAttribute('style', 'position:fixed;left:0;top:0;width:100%;height:100%;border:0;background:#fff;z-index:9999');
+  frame.src = selectedFileUrl;
+  document.body.appendChild(frame);
+  toast('Close this tab when you are done reading.');
+}
+
+function downloadSelected(){
+  if(selectedFileId) downloadFileById(selectedFileId);
+}
+
+function downloadFileById(id){
+  var file = App.files.filter(function(f){ return f.id === id; })[0];
+  if(!file) return toast('That file is no longer stored here.', 'bad');
+  getBlob(id).then(function(blob){
+    if(!blob){ toast('The stored bytes for this file are missing.', 'bad'); return; }
+    saveBlob(file.name, blob);
+    toast('Downloading ' + file.name + ' ✓', 'good');
+  }).catch(function(err){ toast('Download failed: ' + err.message, 'bad'); });
+}
+
+function deleteSelected(){
+  if(!selectedFileId) return;
+  deleteFileById(selectedFileId);
+}
+
+function deleteFileById(id){
+  var file = App.files.filter(function(f){ return f.id === id; })[0];
+  if(!file) return;
+  if(file.ownerId !== App.user.id)
+    return toast('This file belongs to another account on this device.', 'bad');
+  confirmDialog({
+    title:'Delete ' + file.name + '?',
+    message:'The stored copy is removed from this device. Download it first if you need a backup.',
+    okText:'Delete file'
+  }).then(function(ok){
+    if(!ok) return;
+    delBlob(id).catch(function(){});
+    App.files = App.files.filter(function(f){ return f.id !== id; });
+    saveFileMeta();
+    closeFileModal();
+    refreshAfterDataChange();
+    renderFiles();
+    renderClass();
+    toast('File deleted.');
+  });
+}
+
+</script>
+<script>
+/* ===== Embedded app(1).js ===== */
+/* ==========================================================================
+   app.js — router, navigation, dashboard, quick actions, boot
+   ========================================================================== */
+
+'use strict';
+
+var QUOTES = [
+  'Keep going — your future self will thank you.',
+  'Small notes, big exams.',
+  'Ten minutes of review today saves an hour tomorrow.',
+  'Write it down so your brain can rest.',
+  'Understanding beats memorising. Mostly.',
+  'You are one revision session away from feeling ready.',
+  'Organised notes are a superpower.',
+  'Show up, take notes, repeat.'
+];
+
+var AUTH_SCREENS = ['splash', 'signup', 'login', 'forgot'];
+var TRANSIENT_SCREENS = ['editor', 'uploading'];   /* never a "back" destination */
+
+var INIT = {
+  signup:   function(){ initSignupScreen(); },
+  login:    function(){ renderKnownAccounts(); },
+  forgot:   function(){ },
+  dashboard:function(){ renderDashboard(); },
+  subjects: function(){ initSubjectsScreen(); },
+  editor:   function(){ /* filled by openEditor/newNote */ },
+  notes:    function(){ initNotesScreen(); },
+  view:     function(){ },
+  class:    function(){ initClassScreen(); },
+  files:    function(){ initFilesScreen(); },
+  uploading:function(){ },
+  profile:  function(){ initProfileScreen(); },
+  myprofile:function(){ initEditProfileScreen(); },
+  password: function(){ resetPasswordForm(); },
+  settings: function(){ initSettingsScreen(); },
+  help:     function(){ initHelpScreen(); }
+};
+
+/* ---------------- router ---------------- */
+
+function go(id){
+  var section = document.getElementById(id);
+  if(!section) return;
+  var auth = AUTH_SCREENS.indexOf(id) !== -1;
+
+  if(App.screen && App.screen !== id && TRANSIENT_SCREENS.indexOf(App.screen) === -1){
+    App.stack.push(App.screen);
+    if(App.stack.length > 12) App.stack.shift();
+  }
+  App.screen = id;
+
+  document.querySelectorAll('#phone > .screen').forEach(function(s){ s.classList.add('hidden'); });
+  section.classList.remove('hidden');
+  $('phone').classList.toggle('noNav', auth);
+  $('bottomNav').classList.toggle('hidden', auth);
+  if(window.__sharedInView === undefined) window.__sharedInView = null;
+
+  if(App.stack.length > 12) App.stack.shift();
+  updateNav(id);
+  try{ (INIT[id] || function(){ })(); }
+  catch(err){ console.error('Screen init failed for ' + id, err); }
+  section.scrollTop = 0;
+}
+
+function goBack(){
+  var target = App.stack.pop();
+  if(!target || !document.getElementById(target)) target = App.user ? 'dashboard' : 'splash';
+  go(target);
+}
+
+function updateNav(id){
+  var map = { dashboard:'dashboard', subjects:'dashboard', notes:'notes', view:'notes',
+              editor:'notes', uploading:'class', class:'class', files:'class',
+              profile:'profile', myprofile:'profile', password:'profile', settings:'profile', help:'profile' };
+  var active = map[id] || '';
+  document.querySelectorAll('.navbtn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.nav === active);
+  });
+}
+
+/* ---------------- data refresh ---------------- */
+
+function statBlock(value, label){
+  return '<div class="stat"><b>' + value + '</b><small>' + label + '</small></div>';
+}
+
+function refreshAfterDataChange(){
+  if(!App.user) return;
+  if(App.screen === 'dashboard') renderDashboard();
+  if(App.screen === 'subjects') renderSubjects();
+  if(App.screen === 'notes') renderNotes();
+  if(App.screen === 'class') renderClass();
+  if(App.screen === 'files') renderFiles();
+  if(App.screen === 'profile') initProfileScreen();
+  refreshSubjectSelects();
+  updateDashboardFileCount();
+}
+
+/* ---------------- dashboard ---------------- */
+
+function renderDashboard(){
+  var u = App.user;
+  var hour = new Date().getHours();
+  var part = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  $('greetLine').textContent = part + ', ' + firstName(u.name) + ' 👋';
+  $('dailyQuote').textContent = QUOTES[new Date().getDate() % QUOTES.length];
+  $('dashAvatar').textContent = initialsOf(u.name);
+  $('dashAvatar').style.background = u.color || SUBJECT_COLORS[0];
+
+  var notes = myNotes();
+  var mine = myFiles();
+  var sharedNotes = notes.filter(function(n){ return n.shared; }).length;
+  var sharedFiles = mine.filter(function(f){ return f.shared; }).length;
+  var feedNotes = classNotes();
+  var feedFiles = classFiles();
+  var feedTotal = feedNotes.length + feedFiles.length;
+
+  $('roleMeta').innerHTML = (u.role === 'teacher' ? '🧑‍🏫 <b>Teacher</b>' : '🎓 <b>Student</b>') +
+    (u.className ? ' · ' + escapeHtml(u.className) : '') +
+    ' · ' + mySubjects().length + ' subjects';
+
+  $('dashStats').innerHTML = u.role === 'teacher'
+    ? statBlock(notes.length, 'Notes') + statBlock(sharedNotes + sharedFiles, 'Published') +
+      statBlock(feedTotal, 'In class')
+    : statBlock(notes.length, 'Notes') + statBlock(mine.length, 'Files') +
+      statBlock(feedTotal, 'From class');
+
+  var quick = u.role === 'teacher'
+    ? [['✎', 'New lesson note', 'Write and share it in one go', function(){ newNote(); }],
+       ['⬆', 'Upload material', 'Slides, worksheets, PDFs', function(){ go('files'); setTimeout(pickFiles, 350); }],
+       ['🏫', 'Class Library', sharedNotes + sharedFiles + ' published by you', function(){ go('class'); }],
+       ['＋', 'Add a subject', 'History, Music, anything', function(){ go('subjects'); setTimeout(function(){ openSubjectModal(); }, 300); }]]
+    : [['✎', 'New note', 'Start taking notes', function(){ newNote(); }],
+       ['🏫', 'Class Library', feedTotal + ' shared items', function(){ go('class'); }],
+       ['📁', 'My files', mine.length + ' stored', function(){ go('files'); }],
+       ['★', 'Favourites', notes.filter(function(n){ return n.pinned; }).length + ' pinned', function(){ noteFilter = '★ Pinned'; go('notes'); }]];
+
+  $('quickRow').innerHTML = quick.map(function(q, i){
+    return '<button class="quick" data-q="' + i + '"><i>' + q[0] + '</i><span>' + q[1] +
+      '<small>' + q[2] + '</small></span></button>';
+  }).join('');
+  $('quickRow').querySelectorAll('.quick').forEach(function(b){
+    b.onclick = quick[Number(b.dataset.q)][3];
+  });
+
+  var subjects = mySubjects();
+  $('dashSubjects').innerHTML = subjects.slice(0, 4).map(function(s){
+    var count = subjectCount(s.name);
+    return '<button class="subject" onclick="openSubjectNotes(\'' + jsArg(s.name) + '\')">' +
+      '<span class="sbar" style="background:' + s.color + '"></span>' +
+      '<div class="subject-icon">' + s.icon + '</div><b>' + escapeHtml(s.name) + '</b>' +
+      '<small>' + count + (count === 1 ? ' note' : ' notes') + ' ›</small></button>';
+  }).join('') + (subjects.length > 4
+    ? '<button class="subject" onclick="go(\'subjects\')"><div class="subject-icon">＋</div>' +
+      '<b>' + (subjects.length - 4) + ' more</b><small>Manage subjects ›</small></button>'
+    : '<button class="subject" onclick="go(\'subjects\')"><div class="subject-icon">＋</div>' +
+      '<b>Add subject</b><small>Create your own ›</small></button>');
+
+  var recent = notes.slice().sort(function(a, b){
+    return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.updatedAt - a.updatedAt;
+  }).slice(0, 4);
+  $('recentNotes').innerHTML = recent.length ? recent.map(function(n){
+    var meta = subjectMeta(n.subject);
+    return '<button class="note-row" onclick="viewNoteById(\'' + jsArg(n.id) + '\')">' +
+      '<div class="note-dot" style="background:' + meta.color + '22;color:' + meta.color + '">' + meta.icon + '</div>' +
+      '<div class="note-main"><b>' + (n.pinned ? '★ ' : '') + escapeHtml(n.title) + '</b>' +
+      '<small>' + escapeHtml(n.subject) + ' · ' + formatDate(n.updatedAt) + '</small></div>' +
+      '<span class="chev">›</span></button>';
+  }).join('') : '<div class="empty"><b>No notes yet.</b>Tap “New note” and it saves as you type.</div>';
+
+  var classItems = feedNotes.slice(0, 2).map(function(n){
+    return '<button class="note-row" onclick="openSharedNote(\'' + jsArg(n.ownerId) + '\',\'' + jsArg(n.id) + '\')">' +
+      '<div class="note-dot">📄</div><div class="note-main"><b>' + escapeHtml(n.title) + '</b>' +
+      '<small>' + escapeHtml(n.ownerName) + ' · ' + escapeHtml(n.subject) + '</small></div>' +
+      '<span class="chev">›</span></button>';
+  }).concat(feedFiles.slice(0, 2).map(function(f){
+    return '<button class="note-row" onclick="openFileById(\'' + jsArg(f.id) + '\')">' +
+      fileIconBox(f) + '<div class="note-main"><b>' + escapeHtml(f.name) + '</b>' +
+      '<small>' + escapeHtml(f.ownerName) + ' · file</small></div>' +
+      '<span class="chev">›</span></button>';
+  }));
+  $('dashClass').innerHTML = classItems.length ? classItems.join('')
+    : '<div class="empty"><b>Nothing shared with your class yet.</b>' +
+      (u.role === 'teacher' ? 'Publish a note by ticking “share” when you save it.'
+        : 'Your teachers’ notes and files will show up here.') + '</div>';
+
+  updateDashboardFileCount();
+}
+
+function openSubjectNotes(name){
+  noteFilter = name;
+  go('notes');
+}
+
+/* ---------------- view screen mode ---------------- */
+
+function setViewMode(sharedNote){
+  var mine = !sharedNote;
+  $('vbEdit').classList.toggle('hidden', !mine);
+  $('vbCopy').classList.toggle('hidden', !mine);
+  $('vbClassCopy').classList.toggle('hidden', mine);
+  $('pinBtn').classList.toggle('hidden', !mine);
+  $('shareBtn').classList.toggle('hidden', !mine);
+  window.__sharedInView = sharedNote || null;
+}
+function copySharedFromView(){
+  var note = window.__sharedInView;
+  if(!note) return;
+  copySharedNote(note.ownerId, note.id);
+}
+
+/* ---------------- quick add sheet ---------------- */
+
+function openQuickAdd(){ show('quickSheet'); }
+function closeSheets(){ hide('quickSheet'); }
+function sheetAction(kind){
+  closeSheets();
+  if(kind === 'note') newNote();
+  if(kind === 'file'){ go('files'); setTimeout(pickFiles, 350); }
+  if(kind === 'subject'){ go('subjects'); setTimeout(function(){ openSubjectModal(); }, 300); }
+  if(kind === 'class') go('class');
+}
+
+function applyDisplayMode(){
+  var website = localStorage.getItem('na.display.mode') === 'website';
+  document.documentElement.classList.toggle('website-mode', website);
+  var button = document.getElementById('modeToggleButton');
+  if(button){
+    var label = button.querySelector('span');
+    if(label) label.textContent = website ? '📱 Switch to Mobile App Mode' : '🌐 Switch to Website Mode';
+  }
+}
+function toggleWebsiteMode(){
+  var website = localStorage.getItem('na.display.mode') !== 'website';
+  localStorage.setItem('na.display.mode', website ? 'website' : 'app');
+  applyDisplayMode();
+  toast(website ? 'Website mode enabled 🌐' : 'Mobile app mode enabled 📱', 'good');
+}
+
+function enterApp(){
+  applyDisplayMode();
+  App.stack = [];
+  App.screen = '';
+  window.__sharedInView = null;
+  refreshSubjectSelects();
+  go('dashboard');
+}
+
+/* ---------------- keyboard ---------------- */
+
+function bindGlobalKeys(){
+  document.addEventListener('keydown', function(e){
+    var inField = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) ||
+      (document.activeElement.isContentEditable);
+
+    if(e.key === 'Escape'){
+      if(!$('confirmModal').classList.contains('hidden')) return resolveConfirm(false);
+      if(!$('fileModal').classList.contains('hidden')) return closeFileModal();
+      if(!$('subjectModal').classList.contains('hidden')) return hide('subjectModal');
+      if(!$('noteMenuModal').classList.contains('hidden')) return hide('noteMenuModal');
+      if(!$('lightbox').classList.contains('hidden')) return hide('lightbox');
+      if(!$('quickSheet').classList.contains('hidden')) return closeSheets();
+      if(App.user && !['dashboard', 'notes', 'files', 'class', 'profile', 'subjects'].includes(App.screen)) goBack();
+      return;
+    }
+    var ctrl = e.ctrlKey || e.metaKey;
+    if(ctrl && e.key.toLowerCase() === 'k'){
+      e.preventDefault();
+      if(!App.user) return;
+      if(App.screen !== 'notes') go('notes');
+      setTimeout(function(){ $('noteSearch').focus(); $('noteSearch').select(); }, 250);
+      return;
+    }
+    if(ctrl && e.key.toLowerCase() === 'n'){
+      e.preventDefault();
+      if(App.user) newNote();
+      return;
+    }
+    if(!inField && App.user && (e.key === '/' )){
+      e.preventDefault();
+      if(App.screen !== 'notes') go('notes');
+      setTimeout(function(){ $('noteSearch').focus(); }, 200);
+    }
+  });
+  document.addEventListener('click', function(e){
+    if(e.target.id === 'lightbox') hide('lightbox');
+    if(e.target.classList.contains('sheet')) closeSheets();
+    if(e.target.id === 'confirmModal') resolveConfirm(false);
+    if(e.target.id === 'noteMenuModal') hide('noteMenuModal');
+    if(e.target.id === 'subjectModal') hide('subjectModal');
+  });
+  if(window.matchMedia){
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var onChange = function(){ if(App.s.theme === 'auto') applySettings(); };
+    if(mq.addEventListener) mq.addEventListener('change', onChange);
+    else if(mq.addListener) mq.addListener(onChange);
+  }
+}
+
+/* ---------------- boot ---------------- */
+
+function boot(){
+  applyDisplayMode();
+  loadStore();
+  applySettings();
+  initSignupScreen();
+  initLoginScreen();
+  initEditorBindings();
+  bindGlobalKeys();
+
+  if(App.user){
+    setSession(App.user.id);
+    enterApp();
+    toast('Welcome back, ' + firstName(App.user.name) + ' 👋');
+  }else{
+    go('splash');
+  }
+}
+
+
+/* XAMPP/MySQL persistence bridge.
+   Existing app logic remains synchronous; writes are mirrored to api.php.
+   On startup, database values hydrate localStorage before boot() runs. */
+(function(){
+  var allowedKeys = ['na.users.v1','na.userdata.v1','na.filemeta.v1','na.session.v1','na.remember.v1'];
+  var nativeSet = Storage.prototype.setItem;
+  var nativeRemove = Storage.prototype.removeItem;
+  var nativeClear = Storage.prototype.clear;
+  function sendChange(key, value, remove){
+    if (!allowedKeys.includes(key)) return;
+    fetch('api.php', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body:JSON.stringify(remove ? {action:'delete', key:key} : {action:'save', key:key, value:value})
+    }).then(function(r){
+      if(!r.ok) console.warn('Database sync failed for', key, r.status);
+    }).catch(function(e){ console.warn('Database unavailable; local browser copy remains active.', e); });
+  }
+  Storage.prototype.setItem = function(key, value){
+    nativeSet.call(this,key,value);
+    if(this === window.localStorage && allowedKeys.includes(String(key))) sendChange(String(key),String(value),false);
+  };
+  Storage.prototype.removeItem = function(key){
+    nativeRemove.call(this,key);
+    if(this === window.localStorage && allowedKeys.includes(String(key))) sendChange(String(key),null,true);
+  };
+  // clear() is not used by the app, but ensure allowed keys are removed from DB if called.
+  Storage.prototype.clear = function(){
+    if(this === window.localStorage) allowedKeys.forEach(function(k){ sendChange(k,null,true); });
+    nativeClear.call(this);
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    fetch('api.php', {credentials:'same-origin', cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw new Error('API HTTP '+r.status); return r.json(); })
+      .then(function(payload){
+        if(payload && payload.ok && payload.data){
+          Object.keys(payload.data).forEach(function(k){
+            if(allowedKeys.includes(k) && typeof payload.data[k] === 'string') nativeSet.call(localStorage,k,payload.data[k]);
+          });
+        }
+      })
+      .catch(function(e){ console.warn('Could not load MySQL data; using browser cache.',e); })
+      .finally(function(){ boot(); });
+  });
+})();
+
+
+</script>
+</body>
+</html>
